@@ -1,8 +1,8 @@
-# Flayyer
+# flayyer-ruby
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/flayyer`. To experiment with that code, run `bin/console` for an interactive prompt.
+This gem is agnostic to any Ruby framework.
 
-TODO: Delete this and the text above, and describe your gem
+To create a template please refer to: [flayyer.com](https://flayyer.com?ref=flayyer-ruby)
 
 ## Installation
 
@@ -22,7 +22,59 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+After installing the gem you can format URL as:
+
+```ruby
+require 'flayyer'
+
+flayyer = Flayyer::FlayyerURL.create do |f|
+  f.tenant = 'flayyer'
+  f.deck = 'deck'
+  f.template = 'template'
+  f.variables = {
+      title: 'Hello world!'
+  }
+end
+
+# Use this image in your <head/> tags
+url = flayyer.href
+# > https://flayyer.host/v2/flayyer/deck/template.jpeg?__v=1596906866&title=Hello+world%21
+```
+
+Variables can be complex arrays and hashes. 
+
+```ruby
+flayyer = Flayyer::FlayyerURL.create do |f|
+  # ...
+  f.variables = {
+      items: [
+          { text: 'Oranges', count: 12 },
+          { text: 'Apples', count: 14 },
+      ],
+  }
+end
+```
+
+**IMPORTANT: variables should be serializable.**
+
+To decode the URL for debugging purposes:
+
+```ruby
+print(CGI.unescape(url))
+# > https://flayyer.host/v2/flayyer/deck/template.jpeg?title=Hello+world!&__v=123
+```
+
+## Ruby on Rails
+
+Ruby on Rails will try to safely render strings into the HTML. Any FLAYYER string is already safe-serialized and should not be serialized again.
+
+To prevent double serialization make sure to call `.html_safe` like this:
+
+```ruby
+url = flayyer.href.html_safe
+```
+
+> https://apidock.com/rails/String/html_safe
 
 ## Development
 
@@ -32,8 +84,7 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/flayyer.
-
+Bug reports and pull requests are welcome on GitHub at https://github.com/flayyer/flayyer-ruby.
 
 ## License
 

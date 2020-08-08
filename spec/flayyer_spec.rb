@@ -5,6 +5,20 @@ RSpec.describe Flayyer do
 end
 
 RSpec.describe Flayyer::FlayyerURL do
+  it "encodes url" do
+    flayyer = Flayyer::FlayyerURL.create do |f|
+      f.tenant = 'flayyer'
+      f.deck = 'deck'
+      f.template = 'template'
+      f.variables = {
+          title: 'Hello world!'
+      }
+    end
+    href = flayyer.href
+    expect(href).to start_with("https://flayyer.host/v2/flayyer/deck/template.jpeg?__v=")
+    expect(href).to end_with("&title=Hello+world%21")
+  end
+
   it "raises if missing arguments" do
     flayyer = Flayyer::FlayyerURL.create do |f|
       f.tenant = 'flayyer'
