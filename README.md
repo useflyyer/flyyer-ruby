@@ -1,8 +1,8 @@
 # flayyer-ruby
 
-This gem is agnostic to any Ruby framework.
+This gem is agnostic to any Ruby framework and has zero external dependencies.
 
-To create a template please refer to: [flayyer.com](https://flayyer.com?ref=flayyer-ruby)
+To create a FLAYYER template please refer to: [flayyer.com](https://flayyer.com?ref=flayyer-ruby)
 
 ## Installation
 
@@ -28,7 +28,7 @@ After installing the gem you can format URL as:
 require 'flayyer'
 
 flayyer = Flayyer::FlayyerURL.create do |f|
-  f.tenant = 'flayyer'
+  f.tenant = 'tenant'
   f.deck = 'deck'
   f.template = 'template'
   f.variables = {
@@ -38,7 +38,7 @@ end
 
 # Use this image in your <head/> tags
 url = flayyer.href
-# > https://flayyer.host/v2/flayyer/deck/template.jpeg?__v=1596906866&title=Hello+world%21
+# > https://flayyer.host/v2/tenant/deck/template.jpeg?__v=1596906866&title=Hello+world%21
 ```
 
 Variables can be complex arrays and hashes. 
@@ -55,13 +55,13 @@ flayyer = Flayyer::FlayyerURL.create do |f|
 end
 ```
 
-**IMPORTANT: variables should be serializable.**
+**IMPORTANT: variables must be serializable.**
 
 To decode the URL for debugging purposes:
 
 ```ruby
 print(CGI.unescape(url))
-# > https://flayyer.host/v2/flayyer/deck/template.jpeg?title=Hello+world!&__v=123
+# > https://flayyer.host/v2/tenant/deck/template.jpeg?title=Hello+world!&__v=123
 ```
 
 ## Ruby on Rails

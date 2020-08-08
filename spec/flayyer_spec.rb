@@ -7,7 +7,7 @@ end
 RSpec.describe Flayyer::FlayyerURL do
   it "encodes url" do
     flayyer = Flayyer::FlayyerURL.create do |f|
-      f.tenant = 'flayyer'
+      f.tenant = 'tenant'
       f.deck = 'deck'
       f.template = 'template'
       f.variables = {
@@ -15,15 +15,15 @@ RSpec.describe Flayyer::FlayyerURL do
       }
     end
     href = flayyer.href
-    expect(href).to start_with("https://flayyer.host/v2/flayyer/deck/template.jpeg?__v=")
+    expect(href).to start_with("https://flayyer.host/v2/tenant/deck/template.jpeg?__v=")
     expect(href).to end_with("&title=Hello+world%21")
   end
 
   it "raises if missing arguments" do
     flayyer = Flayyer::FlayyerURL.create do |f|
-      f.tenant = 'flayyer'
+      f.tenant = 'tenant'
     end
-    expect(flayyer.tenant).to eq('flayyer')
+    expect(flayyer.tenant).to eq('tenant')
     expect(flayyer.deck).to eq(nil)
     expect(flayyer.template).to eq(nil)
     expect(flayyer.version).to eq(nil)
@@ -31,10 +31,10 @@ RSpec.describe Flayyer::FlayyerURL do
     expect { flayyer.href }.to raise_error(Flayyer::Error)
 
     flayyer = Flayyer::FlayyerURL.create do |f|
-      f.tenant = 'flayyer'
+      f.tenant = 'tenant'
       f.deck = 'deck'
     end
-    expect(flayyer.tenant).to eq('flayyer')
+    expect(flayyer.tenant).to eq('tenant')
     expect(flayyer.deck).to eq('deck')
     expect(flayyer.template).to eq(nil)
     expect(flayyer.version).to eq(nil)
@@ -42,17 +42,17 @@ RSpec.describe Flayyer::FlayyerURL do
     expect { flayyer.href }.to raise_error(Flayyer::Error)
 
     flayyer = Flayyer::FlayyerURL.create do |f|
-      f.tenant = 'flayyer'
+      f.tenant = 'tenant'
       f.deck = 'deck'
       f.template = 'template'
     end
-    expect(flayyer.tenant).to eq('flayyer')
+    expect(flayyer.tenant).to eq('tenant')
     expect(flayyer.deck).to eq('deck')
     expect(flayyer.template).to eq('template')
     expect(flayyer.version).to eq(nil)
     expect(flayyer.extension).to eq('jpeg')
     href = flayyer.href
-    expect(href).to start_with("https://flayyer.host/v2/flayyer/deck/template.jpeg?__v=")
+    expect(href).to start_with("https://flayyer.host/v2/tenant/deck/template.jpeg?__v=")
   end
 end
 
