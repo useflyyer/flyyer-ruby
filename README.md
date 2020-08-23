@@ -14,11 +14,15 @@ gem 'flayyer'
 
 And then execute:
 
-    $ bundle install
+```sh
+bundle install
+```
 
 Or install it yourself as:
 
-    $ gem install flayyer
+```sh
+gem install flayyer
+```
 
 ## Usage
 
