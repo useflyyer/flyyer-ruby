@@ -1,5 +1,5 @@
-require "flayyer/version"
-require "uri"
+require 'flayyer/version'
+require 'uri'
 
 module Flayyer
   class Error < StandardError; end
@@ -32,9 +32,9 @@ module Flayyer
     # Create a https://FLAYYER.com string.
     # If you are on Ruby on Rails please use .html_safe when rendering this string into the HTML
     def href
-      raise Error.new("Missing 'tenant' property") if @tenant.nil?
-      raise Error.new("Missing 'deck' property") if @deck.nil?
-      raise Error.new("Missing 'template' property") if @template.nil?
+      raise Error.new('Missing "tenant" property') if @tenant.nil?
+      raise Error.new('Missing "deck" property') if @deck.nil?
+      raise Error.new('Missing "template" property') if @template.nil?
 
       if @version.nil?
         "https://flayyer.host/v2/#{@tenant}/#{@deck}/#{@template}.#{@extension}?#{self.querystring}"
