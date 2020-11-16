@@ -15,7 +15,7 @@ RSpec.describe Flayyer::FlayyerURL do
       }
     end
     href = flayyer.href
-    expect(href).to start_with('https://flayyer.host/v2/tenant/deck/template.jpeg?__v=')
+    expect(href).to start_with('https://flayyer.io/v2/tenant/deck/template.jpeg?__v=')
     expect(href).to end_with('&title=Hello+world%21')
   end
 
@@ -52,7 +52,7 @@ RSpec.describe Flayyer::FlayyerURL do
     expect(flayyer.version).to eq(nil)
     expect(flayyer.extension).to eq('jpeg')
     href = flayyer.href
-    expect(href).to start_with('https://flayyer.host/v2/tenant/deck/template.jpeg?__v=')
+    expect(href).to start_with('https://flayyer.io/v2/tenant/deck/template.jpeg?__v=')
   end
 end
 

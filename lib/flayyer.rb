@@ -37,9 +37,9 @@ module Flayyer
       raise Error.new('Missing "template" property') if @template.nil?
 
       if @version.nil?
-        "https://flayyer.host/v2/#{@tenant}/#{@deck}/#{@template}.#{@extension}?#{self.querystring}"
+        "https://flayyer.io/v2/#{@tenant}/#{@deck}/#{@template}.#{@extension}?#{self.querystring}"
       else
-        "https://flayyer.host/v2/#{@tenant}/#{@deck}/#{@template}.#{@version}.#{@extension}?#{self.querystring}"
+        "https://flayyer.io/v2/#{@tenant}/#{@deck}/#{@template}.#{@version}.#{@extension}?#{self.querystring}"
       end
     end
   end
