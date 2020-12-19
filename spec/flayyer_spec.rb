@@ -11,12 +11,26 @@ RSpec.describe Flayyer::FlayyerURL do
       f.deck = 'deck'
       f.template = 'template'
       f.variables = {
-          title: 'Hello world!'
+          title: 'Hello world!',
+          description: nil,
+          'img' => '',
       }
+      f.meta = {
+        id: 'dev forgot to slugify',
+        width: '100',
+        :height => 200,
+      }
+      f.meta['resolution'] = 1.0 # test with string key
     end
     href = flayyer.href
     expect(href).to start_with('https://flayyer.io/v2/tenant/deck/template.jpeg?__v=')
-    expect(href).to end_with('&title=Hello+world%21')
+    expect(href).to include('&title=Hello+world%21')
+    expect(href).to include('&img=')
+    expect(href).to include('&__id=dev+forgot+to+slugify')
+    expect(href).to include('&_w=100')
+    expect(href).to include('&_h=200')
+    expect(href).to include('&_res=1.0')
+    expect(href).not_to include('&description')
   end
 
   it 'raises if missing arguments' do

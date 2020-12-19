@@ -5,25 +5,40 @@ module Flayyer
   class Error < StandardError; end
 
   class FlayyerURL
-    attr_accessor :version, :tenant, :deck, :template, :extension, :variables
+    attr_accessor :version, :tenant, :deck, :template, :extension, :variables, :meta
 
     def self.create(&block)
       self.new(&block)
     end
 
-    def initialize(tenant = nil, deck = nil, template = nil, version = nil, extension = 'jpeg', variables = {})
+    def initialize(tenant = nil, deck = nil, template = nil, version = nil, extension = 'jpeg', variables = {}, meta = {})
       @tenant = tenant
       @deck = deck
       @template = template
       @version = version
       @extension = extension
       @variables = variables
+      @meta = meta
       yield(self) if block_given?
     end
 
     def querystring
+      # Allow accesing the keys of @meta with symbols and strings
+      # https://stackoverflow.com/a/10786575
+      @meta.default_proc = proc do |h, k|
+        case k
+          when String then sym = k.to_sym; h[sym] if h.key?(sym)
+          when Symbol then str = k.to_s; h[str] if h.key?(str)
+        end
+     end
+
       defaults = {
-        __v: Time.now.to_i, # This forces crawlers to refresh the image
+        __v: @meta[:v] || Time.now.to_i, # This forces crawlers to refresh the image
+        __id: @meta[:id] || nil,
+        _w: @meta[:width] || nil,
+        _h: @meta[:height] || nil,
+        _res: @meta[:resolution] || nil,
+        _ua: @meta[:agent] || nil,
       }
       result = FlayyerHash.new(@variables.nil? ? defaults : defaults.merge(@variables))
       result.to_query

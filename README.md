@@ -45,7 +45,7 @@ url = flayyer.href
 # > https://flayyer.io/v2/tenant/deck/template.jpeg?__v=1596906866&title=Hello+world%21
 ```
 
-Variables can be complex arrays and hashes. 
+Variables can be complex arrays and hashes.
 
 ```ruby
 flayyer = Flayyer::FlayyerURL.create do |f|
@@ -55,6 +55,9 @@ flayyer = Flayyer::FlayyerURL.create do |f|
           { text: 'Oranges', count: 12 },
           { text: 'Apples', count: 14 },
       ],
+  }
+  f.meta = {
+    id: 'slug-or-id', # To identify the resource in our analytics report
   }
 end
 ```
