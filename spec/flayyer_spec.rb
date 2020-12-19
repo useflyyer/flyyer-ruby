@@ -60,7 +60,7 @@ RSpec.describe Flayyer::FlayyerHash do
   it 'stringifies hash of primitives' do
     hash = { a: 'hello', b: 100, c: false, d: nil, b: 999 }
     str = Flayyer::FlayyerHash.new(hash).to_query
-    expect(str).to eq('a=hello&b=999&c=false&d')
+    expect(str).to eq('a=hello&b=999&c=false')
   end
 
   it 'stringifies a complex hash' do

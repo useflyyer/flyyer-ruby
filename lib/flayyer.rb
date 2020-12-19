@@ -57,6 +57,8 @@ module Flayyer
         v = Hash[v.each_with_index.to_a.map(&:reverse)] if v.is_a?(Array)
         if v.is_a?(Hash)
           h.merge!(FlayyerHash.new(v).to_query_hash(new_key))
+        elsif v.nil?
+          # skip null values
         else
           h[new_key] = v
         end
