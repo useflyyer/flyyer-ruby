@@ -4,6 +4,53 @@ require 'uri'
 module Flayyer
   class Error < StandardError; end
 
+  class FlayyerAI
+    attr_accessor :project, :path, :variables, :meta
+
+    def self.create(&block)
+      self.new(&block)
+    end
+
+    def initialize(project = nil, path = nil, variables = {}, meta = {})
+      @project = project
+      @path = path
+      @variables = variables
+      @meta = meta
+      yield(self) if block_given?
+    end
+
+    def querystring
+      # Allow accesing the keys of @meta with symbols and strings
+      # https://stackoverflow.com/a/10786575
+      @meta.default_proc = proc do |h, k|
+        case k
+          when String then sym = k.to_sym; h[sym] if h.key?(sym)
+          when Symbol then str = k.to_s; h[str] if h.key?(str)
+        end
+     end
+
+      defaults = {
+        __v: @meta[:v].nil? ? Time.now.to_i : @meta[:v], # This forces crawlers to refresh the image
+        __id: @meta[:id] || nil,
+        _w: @meta[:width] || nil,
+        _h: @meta[:height] || nil,
+        _res: @meta[:resolution] || nil,
+        _ua: @meta[:agent] || nil,
+      }
+      result = FlayyerHash.new(@variables.nil? ? defaults : defaults.merge(@variables))
+      result.to_query
+    end
+
+    # Create a https://flayyer.com string.
+    # If you are on Ruby on Rails please use .html_safe when rendering this string into the HTML
+    def href
+      raise Error.new('Missing "project" property') if @project.nil?
+      signature = '_' # TODO
+      params = self.querystring
+      "https://flayyer.ai/v2/#{@project}/#{signature}/#{params}#{@path || '/'}"
+    end
+  end
+
   class FlayyerURL
     attr_accessor :version, :tenant, :deck, :template, :extension, :variables, :meta
 

@@ -70,6 +70,29 @@ RSpec.describe Flayyer::FlayyerURL do
   end
 end
 
+RSpec.describe Flayyer::FlayyerAI do
+  it 'encodes url' do
+    flayyer = Flayyer::FlayyerAI.create do |f|
+      f.project = 'project'
+      f.path = '/path'
+      f.variables = {
+          title: 'Hello world!',
+          description: nil,
+          'img' => '',
+      }
+      f.meta = {
+        id: 'dev forgot to slugify',
+        width: '100',
+        :height => 200,
+        v: '',
+      }
+      f.meta['resolution'] = 1.0 # test with string key
+    end
+    href = flayyer.href
+    expect(href).to eq('https://flayyer.ai/v2/project/_/__v=&__id=dev+forgot+to+slugify&_w=100&_h=200&_res=1.0&title=Hello+world%21&img=/path')
+  end
+end
+
 RSpec.describe Flayyer::FlayyerHash do
   it 'stringifies hash of primitives' do
     hash = { a: 'hello', b: 100, c: false, d: nil, b: 999 }
