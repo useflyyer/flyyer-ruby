@@ -11,14 +11,14 @@ RSpec.describe Flayyer::FlayyerURL do
       f.deck = 'deck'
       f.template = 'template'
       f.variables = {
-          title: 'Hello world!',
-          description: nil,
-          'img' => '',
+        title: 'Hello world!',
+        description: nil,
+        'img' => ''
       }
       f.meta = {
         id: 'dev forgot to slugify',
         width: '100',
-        :height => 200,
+        height: 200
       }
       f.meta['resolution'] = 1.0 # test with string key
     end
@@ -74,22 +74,79 @@ RSpec.describe Flayyer::FlayyerAI do
   it 'encodes url' do
     flayyer = Flayyer::FlayyerAI.create do |f|
       f.project = 'project'
-      f.path = '/path'
+      f.path = '/path/to/product'
       f.variables = {
-          title: 'Hello world!',
-          description: nil,
-          'img' => '',
+        title: 'Hello world!',
+        description: nil,
+        'img' => ''
       }
       f.meta = {
         id: 'dev forgot to slugify',
         width: '100',
-        :height => 200,
-        v: '',
+        height: 200,
+        v: ''
       }
       f.meta['resolution'] = 1.0 # test with string key
     end
     href = flayyer.href
-    expect(href).to eq('https://flayyer.ai/v2/project/_/__v=&__id=dev+forgot+to+slugify&_w=100&_h=200&_res=1.0&title=Hello+world%21&img=/path')
+    expect(href).to eq('https://flayyer.ai/v2/project/_/__v=&__id=dev+forgot+to+slugify&_w=100&_h=200&_res=1.0&title=Hello+world%21&img=/path/to/product')
+  end
+end
+
+RSpec.describe Flayyer::FlayyerAI do
+  it 'encodes url with default values' do
+    flayyer = Flayyer::FlayyerAI.create do |f|
+      f.project = 'project'
+      f.path = '/path/to/product'
+    end
+    href = flayyer.href
+    expect(href).to match(/https:\/\/flayyer.ai\/v2\/project\/_\/__v=\d+\/path\/to\/product/)
+  end
+end
+
+RSpec.describe Flayyer::FlayyerAI do
+  it 'encodes url with query params' do
+    flayyer = Flayyer::FlayyerAI.create do |f|
+      f.project = 'project'
+      f.path = '/path/to/collection?sort=price'
+    end
+    href = flayyer.href
+    expect(href).to match(/https:\/\/flayyer.ai\/v2\/project\/_\/__v=\d+\/path\/to\/collection\/?\?sort=price/)
+  end
+end
+
+RSpec.describe Flayyer::FlayyerAI do
+  it 'encodes url with hmac signature' do
+    flayyer = Flayyer::FlayyerAI.create do |f|
+      f.project = 'project'
+      f.path = '/collections/col'
+      f.secret = 'sg1j0HVy9bsMihJqa8Qwu8ZYgCYHG0tx'
+      f.meta = {
+        id: 'dev forgot to slugify',
+        width: '100',
+        height: 200,
+      }
+    end
+    href = flayyer.href
+    expect(href).to match(/https:\/\/flayyer.ai\/v2\/project\/5c513fb146801cb6\/__v=\d+&__id=dev\+forgot\+to\+slugify&_w=100&_h=200\/collections\/col\/?/)
+  end
+end
+
+RSpec.describe Flayyer::FlayyerAI do
+  it 'encodes url with jwt' do
+    flayyer = Flayyer::FlayyerAI.create do |f|
+      f.project = 'project'
+      f.path = '/collections/col'
+      f.secret = 'sg1j0HVy9bsMihJqa8Qwu8ZYgCYHG0tx'
+      f.strategy = 'JWT'
+      f.meta = {
+        id: 'dev forgot to slugify',
+        width: '100',
+        height: 200,
+      }
+    end
+    href = flayyer.href
+    expect(href).to eq('https://flayyer.ai/v2/project/jwt-eyJhbGciOiJIUzI1NiJ9.eyJpZCI6ImRldiBmb3Jnb3QgdG8gc2x1Z2lmeSIsIndpZHRoIjoiMTAwIiwiaGVpZ2h0IjoyMDB9.0KpbuqbwJyNVNqPOJO_LzvqOXCQK51_WbGEm3pFyY9s')
   end
 end
 
