@@ -62,8 +62,9 @@ module Flayyer
     end
 
     def sign
-      return '_' if @strategy.nil?
-      raise Error.new('Missing `secret`. You can find it in your project in Advanced settings.') if @secret.nil?
+      return '_' if @strategy.nil? and @secret.nil?
+      raise Error.new('Got `strategy` but missing `secret`. You can find it in your project in Advanced settings.') if @secret.nil?
+      raise Error.new('Got `secret` but missing `strategy`.  Valid options are `HMAC` or `JWT`.') if @strategy.nil?
       key = @secret
       data = "#{@project}#{self.path_safe}#{self.querystring(true)}"
       if strategy.downcase == "hmac" then
