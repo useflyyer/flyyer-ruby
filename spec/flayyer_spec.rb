@@ -128,7 +128,7 @@ RSpec.describe Flayyer::FlayyerAI do
       }
     end
     href = flayyer.href
-    expect(href).to match(/https:\/\/flayyer.ai\/v2\/project\/5c513fb146801cb6\/__v=\d+&__id=dev\+forgot\+to\+slugify&_w=100&_h=200\/collections\/col\/?/)
+    expect(href).to match(/https:\/\/flayyer.ai\/v2\/project\/2ac6814e65396840\/__v=\d+&__id=dev\+forgot\+to\+slugify&_w=100&_h=200\/collections\/col\/?/)
   end
 end
 
