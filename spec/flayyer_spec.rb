@@ -157,7 +157,7 @@ RSpec.describe Flayyer::FlayyerAI do
       }
     end
     href = flayyer.href
-    expect(href).to match(/https:\/\/flayyer.ai\/v2\/project\/jwt-eyJhbGciOiJIUzI1NiJ9.eyJpZCI6ImRldiBmb3Jnb3QgdG8gc2x1Z2lmeSIsIndpZHRoIjoiMTAwIiwiaGVpZ2h0IjoyMDB9.0KpbuqbwJyNVNqPOJO_LzvqOXCQK51_WbGEm3pFyY9s\/?\?__v=\d+/)
+    expect(href).to match(/https:\/\/flayyer.ai\/v2\/project\/jwt-eyJhbGciOiJIUzI1NiJ9.eyJfX2lkIjoiZGV2IGZvcmdvdCB0byBzbHVnaWZ5IiwiX3ciOiIxMDAiLCJfaCI6MjAwLCJfcmVzIjpudWxsLCJfdWEiOm51bGx9.SmWb2xLlrQMPkR1dZotz8gsnGaOBV0GPQoR_goEI7UY\/?\?__v=\d+/)
   end
 end
 
@@ -175,7 +175,7 @@ RSpec.describe Flayyer::FlayyerAI do
       }
     end
     href = flayyer.href
-    expect(href).to match(/https:\/\/flayyer.ai\/v2\/project\/jwt-eyJhbGciOiJIUzI1NiJ9.eyJpZCI6ImRldiBmb3Jnb3QgdG8gc2x1Z2lmeSIsIndpZHRoIjoiMTAwIiwiaGVpZ2h0IjoyMDB9.0KpbuqbwJyNVNqPOJO_LzvqOXCQK51_WbGEm3pFyY9s\/?\?__v=\d+/)
+    expect(href).to match(/https:\/\/flayyer.ai\/v2\/project\/jwt-eyJhbGciOiJIUzI1NiJ9.eyJfX2lkIjoiZGV2IGZvcmdvdCB0byBzbHVnaWZ5IiwiX3ciOiIxMDAiLCJfaCI6MjAwLCJfcmVzIjpudWxsLCJfdWEiOm51bGx9.SmWb2xLlrQMPkR1dZotz8gsnGaOBV0GPQoR_goEI7UY\/?\?__v=\d+/)
   end
 end
 
