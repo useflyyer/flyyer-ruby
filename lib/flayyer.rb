@@ -27,6 +27,19 @@ module Flayyer
       @path.start_with?("/") ? @path : "/#{@path}"
     end
 
+    def default_hash(ignoreV)
+      defaults = {
+        __v: @meta[:v].nil? ? Time.now.to_i : @meta[:v], # This forces crawlers to refresh the image
+        __id: @meta[:id] || nil,
+        _w: @meta[:width] || nil,
+        _h: @meta[:height] || nil,
+        _res: @meta[:resolution] || nil,
+        _ua: @meta[:agent] || nil
+      }
+      defaults.delete(:__v) if ignoreV
+      defaults
+    end
+
     def querystring(ignoreV = false)
       # Allow accesing the keys of @meta with symbols and strings
       # https://stackoverflow.com/a/10786575
@@ -37,28 +50,9 @@ module Flayyer
         end
       end
 
-      if !ignoreV then
-        defaults = {
-          __v: @meta[:v].nil? ? Time.now.to_i : @meta[:v], # This forces crawlers to refresh the image
-          __id: @meta[:id] || nil,
-          _w: @meta[:width] || nil,
-          _h: @meta[:height] || nil,
-          _res: @meta[:resolution] || nil,
-          _ua: @meta[:agent] || nil
-        }
-        result = FlayyerHash.new(@variables.nil? ? defaults : defaults.merge(@variables))
-        result.to_query.split("&").sort().join("&")
-      else
-        defaults = {
-          __id: @meta[:id] || nil,
-          _w: @meta[:width] || nil,
-          _h: @meta[:height] || nil,
-          _res: @meta[:resolution] || nil,
-          _ua: @meta[:agent] || nil
-        }
-        result = FlayyerHash.new(@variables.nil? ? defaults : defaults.merge(@variables))
-        result.to_query.split("&").sort().join("&")
-      end
+      defaults = self.default_hash(ignoreV)
+      result = FlayyerHash.new(@variables.nil? ? defaults : defaults.merge(@variables))
+      result.to_query.split("&").sort().join("&")
     end
 
     def sign
@@ -72,7 +66,6 @@ module Flayyer
         mac[0..15]
       elsif strategy.downcase == "jwt"
         payload = @variables.merge(@meta)
-        payload.delete("__v")
         JWT.encode(payload, key, 'HS256')
       else
         raise Error.new('Invalid `strategy`. Valid options are `HMAC` or `JWT`.')
