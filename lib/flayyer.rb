@@ -72,6 +72,7 @@ module Flayyer
         mac[0..15]
       elsif strategy.downcase == "jwt"
         payload = @variables.merge(@meta)
+        payload.delete("__v")
         JWT.encode(payload, key, 'HS256')
       else
         raise Error.new('Invalid `strategy`. Valid options are `HMAC` or `JWT`.')
