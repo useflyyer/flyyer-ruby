@@ -71,7 +71,7 @@ RSpec.describe Flayyer::FlayyerURL do
 end
 
 RSpec.describe Flayyer::FlayyerAI do
-  it 'encodes url' do
+  it 'encodes url happy path' do
     flayyer = Flayyer::FlayyerAI.create do |f|
       f.project = 'project'
       f.path = '/path/to/product'
@@ -89,7 +89,7 @@ RSpec.describe Flayyer::FlayyerAI do
       f.meta['resolution'] = 1.0 # test with string key
     end
     href = flayyer.href
-    expect(href).to eq('https://flayyer.ai/v2/project/_/__v=&__id=dev+forgot+to+slugify&_w=100&_h=200&_res=1.0&title=Hello+world%21&img=/path/to/product')
+    expect(href).to eq('https://flayyer.ai/v2/project/_/__id=dev+forgot+to+slugify&__v=&_h=200&_res=1.0&_w=100&img=&title=Hello+world%21/path/to/product')
   end
 end
 
@@ -97,7 +97,17 @@ RSpec.describe Flayyer::FlayyerAI do
   it 'encodes url with default values' do
     flayyer = Flayyer::FlayyerAI.create do |f|
       f.project = 'project'
-      f.path = '/path/to/product'
+    end
+    href = flayyer.href
+    expect(href).to match(/https:\/\/flayyer.ai\/v2\/project\/_\/__v=\d+\//)
+  end
+end
+
+RSpec.describe Flayyer::FlayyerAI do
+  it 'encodes url with path missing / at start' do
+    flayyer = Flayyer::FlayyerAI.create do |f|
+      f.project = 'project'
+      f.path = 'path/to/product'
     end
     href = flayyer.href
     expect(href).to match(/https:\/\/flayyer.ai\/v2\/project\/_\/__v=\d+\/path\/to\/product/)
@@ -121,6 +131,7 @@ RSpec.describe Flayyer::FlayyerAI do
       f.project = 'project'
       f.path = '/collections/col'
       f.secret = 'sg1j0HVy9bsMihJqa8Qwu8ZYgCYHG0tx'
+      f.strategy = "HMAC"
       f.meta = {
         id: 'dev forgot to slugify',
         width: '100',
@@ -128,7 +139,7 @@ RSpec.describe Flayyer::FlayyerAI do
       }
     end
     href = flayyer.href
-    expect(href).to match(/https:\/\/flayyer.ai\/v2\/project\/2ac6814e65396840\/__v=\d+&__id=dev\+forgot\+to\+slugify&_w=100&_h=200\/collections\/col\/?/)
+    expect(href).to match(/https:\/\/flayyer.ai\/v2\/project\/e8771c307e66652f\/__id=dev\+forgot\+to\+slugify&__v=\d+&_h=200&_w=100\/collections\/col\/?/)
   end
 end
 
@@ -146,7 +157,25 @@ RSpec.describe Flayyer::FlayyerAI do
       }
     end
     href = flayyer.href
-    expect(href).to eq('https://flayyer.ai/v2/project/jwt-eyJhbGciOiJIUzI1NiJ9.eyJpZCI6ImRldiBmb3Jnb3QgdG8gc2x1Z2lmeSIsIndpZHRoIjoiMTAwIiwiaGVpZ2h0IjoyMDB9.0KpbuqbwJyNVNqPOJO_LzvqOXCQK51_WbGEm3pFyY9s')
+    expect(href).to match(/https:\/\/flayyer.ai\/v2\/project\/jwt-eyJhbGciOiJIUzI1NiJ9.eyJpZCI6ImRldiBmb3Jnb3QgdG8gc2x1Z2lmeSIsIndpZHRoIjoiMTAwIiwiaGVpZ2h0IjoyMDB9.0KpbuqbwJyNVNqPOJO_LzvqOXCQK51_WbGEm3pFyY9s\/?\?__v=\d+/)
+  end
+end
+
+RSpec.describe Flayyer::FlayyerAI do
+  it 'encodes url with jwt with path missing / at start' do
+    flayyer = Flayyer::FlayyerAI.create do |f|
+      f.project = 'project'
+      f.path = 'collections/col'
+      f.secret = 'sg1j0HVy9bsMihJqa8Qwu8ZYgCYHG0tx'
+      f.strategy = 'JWT'
+      f.meta = {
+        id: 'dev forgot to slugify',
+        width: '100',
+        height: 200,
+      }
+    end
+    href = flayyer.href
+    expect(href).to match(/https:\/\/flayyer.ai\/v2\/project\/jwt-eyJhbGciOiJIUzI1NiJ9.eyJpZCI6ImRldiBmb3Jnb3QgdG8gc2x1Z2lmeSIsIndpZHRoIjoiMTAwIiwiaGVpZ2h0IjoyMDB9.0KpbuqbwJyNVNqPOJO_LzvqOXCQK51_WbGEm3pFyY9s\/?\?__v=\d+/)
   end
 end
 
