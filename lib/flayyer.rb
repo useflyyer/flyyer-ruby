@@ -13,9 +13,9 @@ module Flayyer
       self.new(&block)
     end
 
-    def initialize(project = nil, path = nil, variables = {}, meta = {}, secret = nil, strategy = "HMAC")
+    def initialize(project = nil, path = nil, variables = {}, meta = {}, secret = nil, strategy = nil)
       @project = project
-      @path = path || '/'
+      @path = path || "/"
       @variables = variables
       @meta = meta
       @secret = secret
@@ -23,7 +23,11 @@ module Flayyer
       yield(self) if block_given?
     end
 
-    def querystring(private = true)
+    def path_safe
+      @path.start_with?("/") ? @path : "/#{@path}"
+    end
+
+    def querystring(ignoreV = false)
       # Allow accesing the keys of @meta with symbols and strings
       # https://stackoverflow.com/a/10786575
       @meta.default_proc = proc do |h, k|
@@ -33,7 +37,7 @@ module Flayyer
         end
       end
 
-      if private then
+      if !ignoreV then
         defaults = {
           __v: @meta[:v].nil? ? Time.now.to_i : @meta[:v], # This forces crawlers to refresh the image
           __id: @meta[:id] || nil,
@@ -43,9 +47,10 @@ module Flayyer
           _ua: @meta[:agent] || nil
         }
         result = FlayyerHash.new(@variables.nil? ? defaults : defaults.merge(@variables))
-        result.to_query
+        result.to_query.split("&").sort().join("&")
       else
         defaults = {
+          __id: @meta[:id] || nil,
           _w: @meta[:width] || nil,
           _h: @meta[:height] || nil,
           _res: @meta[:resolution] || nil,
@@ -57,15 +62,18 @@ module Flayyer
     end
 
     def sign
-      return '_' if @secret.nil?
+      return '_' if @strategy.nil?
+      raise Error.new('Missing `secret`. You can find it in your project in Advanced settings.') if @secret.nil?
       key = @secret
-      data = "#{@project}#{@path}#{self.querystring(false)}"
-      if strategy.nil? || strategy != "JWT" then
+      data = "#{@project}#{self.path_safe}#{self.querystring(true)}"
+      if strategy.downcase == "hmac" then
         mac = OpenSSL::HMAC.hexdigest('SHA256', key, data)
         mac[0..15]
-      else
+      elsif strategy.downcase == "jwt"
         payload = @variables.merge(@meta)
         JWT.encode(payload, key, 'HS256')
+      else
+        raise Error.new('Invalid `strategy`. Valid options are `HMAC` or `JWT`.')
       end
     end
 
@@ -77,9 +85,9 @@ module Flayyer
       signature = self.sign
       params = self.querystring
       if strategy.nil? || strategy != "JWT" then
-        "https://flayyer.ai/v2/#{@project}/#{signature}/#{params}#{@path}"
+        "https://flayyer.ai/v2/#{@project}/#{signature}/#{params}#{self.path_safe}"
       else
-        "https://flayyer.ai/v2/#{@project}/jwt-#{signature}"
+        "https://flayyer.ai/v2/#{@project}/jwt-#{signature}?__v=#{Time.now.to_i}"
       end
     end
   end
