@@ -1,53 +1,86 @@
 require 'flayyer/version'
 require 'uri'
+require 'openssl'
+require 'jwt'
 
 module Flayyer
   class Error < StandardError; end
 
   class FlayyerAI
-    attr_accessor :project, :path, :variables, :meta
+    attr_accessor :project, :path, :variables, :meta, :secret, :strategy
 
     def self.create(&block)
       self.new(&block)
     end
 
-    def initialize(project = nil, path = nil, variables = {}, meta = {})
+    def initialize(project = nil, path = nil, variables = {}, meta = {}, secret = nil, strategy = "HMAC")
       @project = project
-      @path = path
+      @path = path || '/'
       @variables = variables
       @meta = meta
+      @secret = secret
+      @strategy = strategy
       yield(self) if block_given?
     end
 
-    def querystring
+    def querystring(private = true)
       # Allow accesing the keys of @meta with symbols and strings
       # https://stackoverflow.com/a/10786575
       @meta.default_proc = proc do |h, k|
         case k
-          when String then sym = k.to_sym; h[sym] if h.key?(sym)
-          when Symbol then str = k.to_s; h[str] if h.key?(str)
+        when String then sym = k.to_sym; h[sym] if h.key?(sym)
+        when Symbol then str = k.to_s; h[str] if h.key?(str)
         end
-     end
+      end
 
-      defaults = {
-        __v: @meta[:v].nil? ? Time.now.to_i : @meta[:v], # This forces crawlers to refresh the image
-        __id: @meta[:id] || nil,
-        _w: @meta[:width] || nil,
-        _h: @meta[:height] || nil,
-        _res: @meta[:resolution] || nil,
-        _ua: @meta[:agent] || nil,
-      }
-      result = FlayyerHash.new(@variables.nil? ? defaults : defaults.merge(@variables))
-      result.to_query
+      if private then
+        defaults = {
+          __v: @meta[:v].nil? ? Time.now.to_i : @meta[:v], # This forces crawlers to refresh the image
+          __id: @meta[:id] || nil,
+          _w: @meta[:width] || nil,
+          _h: @meta[:height] || nil,
+          _res: @meta[:resolution] || nil,
+          _ua: @meta[:agent] || nil
+        }
+        result = FlayyerHash.new(@variables.nil? ? defaults : defaults.merge(@variables))
+        result.to_query
+      else
+        defaults = {
+          _w: @meta[:width] || nil,
+          _h: @meta[:height] || nil,
+          _res: @meta[:resolution] || nil,
+          _ua: @meta[:agent] || nil
+        }
+        result = FlayyerHash.new(@variables.nil? ? defaults : defaults.merge(@variables))
+        result.to_query
+      end
+    end
+
+    def sign
+      return '_' if @secret.nil?
+      key = @secret
+      data = "#{@project}#{@path}#{self.querystring(false)}"
+      if strategy.nil? || strategy != "JWT" then
+        mac = OpenSSL::HMAC.hexdigest('SHA256', key, data)
+        mac[0..15]
+      else
+        payload = @variables.merge(@meta)
+        JWT.encode(payload, key, 'HS256')
+      end
     end
 
     # Create a https://flayyer.com string.
     # If you are on Ruby on Rails please use .html_safe when rendering this string into the HTML
     def href
       raise Error.new('Missing "project" property') if @project.nil?
-      signature = '_' # TODO
+
+      signature = self.sign
       params = self.querystring
-      "https://flayyer.ai/v2/#{@project}/#{signature}/#{params}#{@path || '/'}"
+      if strategy.nil? || strategy != "JWT" then
+        "https://flayyer.ai/v2/#{@project}/#{signature}/#{params}#{@path}"
+      else
+        "https://flayyer.ai/v2/#{@project}/jwt-#{signature}"
+      end
     end
   end
 
@@ -77,7 +110,7 @@ module Flayyer
           when String then sym = k.to_sym; h[sym] if h.key?(sym)
           when Symbol then str = k.to_s; h[str] if h.key?(str)
         end
-     end
+      end
 
       defaults = {
         __v: @meta[:v].nil? ? Time.now.to_i : @meta[:v], # This forces crawlers to refresh the image
@@ -85,7 +118,7 @@ module Flayyer
         _w: @meta[:width] || nil,
         _h: @meta[:height] || nil,
         _res: @meta[:resolution] || nil,
-        _ua: @meta[:agent] || nil,
+        _ua: @meta[:agent] || nil
       }
       result = FlayyerHash.new(@variables.nil? ? defaults : defaults.merge(@variables))
       result.to_query
