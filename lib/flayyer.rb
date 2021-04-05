@@ -52,7 +52,7 @@ module Flayyer
           _ua: @meta[:agent] || nil
         }
         result = FlayyerHash.new(@variables.nil? ? defaults : defaults.merge(@variables))
-        result.to_query
+        result.to_query.split("&").sort().join("&")
       end
     end
 
