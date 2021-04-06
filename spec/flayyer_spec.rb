@@ -196,9 +196,6 @@ end
 RSpec.describe Flayyer::FlayyerAI do
   it 'encodes url with jwt with path missing / at start' do
     key = 'sg1j0HVy9bsMihJqa8Qwu8ZYgCYHG0tx'
-    variables = {
-      title: 'Hello world!',
-    }
     flayyer = Flayyer::FlayyerAI.create do |f|
       f.project = 'project'
       f.path = 'collections/col'
@@ -209,7 +206,9 @@ RSpec.describe Flayyer::FlayyerAI do
         width: '100',
         height: 200,
       }
-      f.variables = variables
+      f.variables = {
+        title: 'Hello world!',
+      }
     end
     href = flayyer.href
     token = href.scan(/(jwt-)(.*)(\?)/).last[1]
