@@ -1,3 +1,5 @@
+require 'jwt'
+
 RSpec.describe Flayyer do
   it 'has a version number' do
     expect(Flayyer::VERSION).not_to be nil
@@ -147,12 +149,35 @@ RSpec.describe Flayyer::FlayyerAI do
 end
 
 RSpec.describe Flayyer::FlayyerAI do
+  it 'encodes url with jwt with default values' do
+    key = 'sg1j0HVy9bsMihJqa8Qwu8ZYgCYHG0tx'
+    flayyer = Flayyer::FlayyerAI.create do |f|
+      f.project = 'project'
+      f.secret = key
+      f.strategy = "JWT"
+      f.variables = {}
+      f.meta = {}
+    end
+    href = flayyer.href
+
+    token = href.scan(/(jwt-)(.*)(\?)/).last[1]
+    decoded = JWT.decode(token, key, true, { algorithm: 'HS256' })
+    payload = decoded.first
+    expect(flayyer.variables).to eq({})
+    expect(payload == flayyer.params_hash(true).compact)
+  end
+end
+
+RSpec.describe Flayyer::FlayyerAI do
+  key = 'sg1j0HVy9bsMihJqa8Qwu8ZYgCYHG0tx'
   it 'encodes url with jwt' do
+    variables = {}
     flayyer = Flayyer::FlayyerAI.create do |f|
       f.project = 'project'
       f.path = '/collections/col'
       f.secret = 'sg1j0HVy9bsMihJqa8Qwu8ZYgCYHG0tx'
       f.strategy = 'JWT'
+      f.variables = {}
       f.meta = {
         id: 'dev forgot to slugify',
         width: '100',
@@ -160,12 +185,21 @@ RSpec.describe Flayyer::FlayyerAI do
       }
     end
     href = flayyer.href
-    expect(href).to match(/https:\/\/flayyer.ai\/v2\/project\/jwt-eyJhbGciOiJIUzI1NiJ9.eyJfX2lkIjoiZGV2IGZvcmdvdCB0byBzbHVnaWZ5IiwiX3ciOiIxMDAiLCJfaCI6MjAwLCJfcmVzIjpudWxsLCJfdWEiOm51bGx9.SmWb2xLlrQMPkR1dZotz8gsnGaOBV0GPQoR_goEI7UY\/?\?__v=\d+/)
+    token = href.scan(/(jwt-)(.*)(\?)/).last[1]
+    decoded = JWT.decode(token, key, true, { algorithm: 'HS256' })
+    payload = decoded.first
+    expect(flayyer.meta[:width]).to eq('100')
+    expect(flayyer.meta[:height]).to eq(200)
+    expect(payload == flayyer.params_hash(true).compact)
   end
 end
 
 RSpec.describe Flayyer::FlayyerAI do
   it 'encodes url with jwt with path missing / at start' do
+    key = 'sg1j0HVy9bsMihJqa8Qwu8ZYgCYHG0tx'
+    variables = {
+      title: 'Hello world!',
+    }
     flayyer = Flayyer::FlayyerAI.create do |f|
       f.project = 'project'
       f.path = 'collections/col'
@@ -176,12 +210,14 @@ RSpec.describe Flayyer::FlayyerAI do
         width: '100',
         height: 200,
       }
-      f.variables = {
-        title: 'Hello world!',
-      }
+      f.variables = variables
     end
     href = flayyer.href
-    expect(href).to match(/https:\/\/flayyer.ai\/v2\/project\/jwt-eyJhbGciOiJIUzI1NiJ9.eyJfX2lkIjoiZGV2IGZvcmdvdCB0byBzbHVnaWZ5IiwiX3ciOiIxMDAiLCJfaCI6MjAwLCJfcmVzIjpudWxsLCJfdWEiOm51bGwsInRpdGxlIjoiSGVsbG8gd29ybGQhIn0.xCelyKLG74PcEhF9k0wwlDv46o6l2i8FrvNXRbnNTek\/?\?__v=\d+/)
+    token = href.scan(/(jwt-)(.*)(\?)/).last[1]
+    decoded = JWT.decode(token, key, true, { algorithm: 'HS256' })
+    payload = decoded.first
+    expect(flayyer.meta[:id]).to eq('dev forgot to slugify')
+    expect(payload == flayyer.params_hash(true).compact)
   end
 end
 
