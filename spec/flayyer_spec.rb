@@ -137,9 +137,12 @@ RSpec.describe Flayyer::FlayyerAI do
         width: '100',
         height: 200,
       }
+      f.variables = {
+        title: 'Hello world!',
+      }
     end
     href = flayyer.href
-    expect(href).to match(/https:\/\/flayyer.ai\/v2\/project\/e8771c307e66652f\/__id=dev\+forgot\+to\+slugify&__v=\d+&_h=200&_w=100\/collections\/col\/?/)
+    expect(href).to match(/https:\/\/flayyer.ai\/v2\/project\/361b2a456daf8415\/__id=dev\+forgot\+to\+slugify&__v=\d+&_h=200&_w=100&title=Hello\+world%21\/collections\/col\/?/)
   end
 end
 
@@ -173,9 +176,12 @@ RSpec.describe Flayyer::FlayyerAI do
         width: '100',
         height: 200,
       }
+      f.variables = {
+        title: 'Hello world!',
+      }
     end
     href = flayyer.href
-    expect(href).to match(/https:\/\/flayyer.ai\/v2\/project\/jwt-eyJhbGciOiJIUzI1NiJ9.eyJfX2lkIjoiZGV2IGZvcmdvdCB0byBzbHVnaWZ5IiwiX3ciOiIxMDAiLCJfaCI6MjAwLCJfcmVzIjpudWxsLCJfdWEiOm51bGx9.SmWb2xLlrQMPkR1dZotz8gsnGaOBV0GPQoR_goEI7UY\/?\?__v=\d+/)
+    expect(href).to match(/https:\/\/flayyer.ai\/v2\/project\/jwt-eyJhbGciOiJIUzI1NiJ9.eyJfX2lkIjoiZGV2IGZvcmdvdCB0byBzbHVnaWZ5IiwiX3ciOiIxMDAiLCJfaCI6MjAwLCJfcmVzIjpudWxsLCJfdWEiOm51bGwsInRpdGxlIjoiSGVsbG8gd29ybGQhIn0.xCelyKLG74PcEhF9k0wwlDv46o6l2i8FrvNXRbnNTek\/?\?__v=\d+/)
   end
 end
 
