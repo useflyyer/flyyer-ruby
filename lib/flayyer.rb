@@ -37,7 +37,7 @@ module Flayyer
         _ua: @meta[:agent] || nil
       }
       defaults.delete(:__v) if ignoreV
-      defaults
+      @variables.nil? ? defaults : defaults.merge(@variables)
     end
 
     def querystring(ignoreV = false)
@@ -51,7 +51,7 @@ module Flayyer
       end
 
       defaults = self.default_hash(ignoreV)
-      result = FlayyerHash.new(@variables.nil? ? defaults : defaults.merge(@variables))
+      result = FlayyerHash.new(defaults)
       result.to_query.split("&").sort().join("&")
     end
 
