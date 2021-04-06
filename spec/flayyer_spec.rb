@@ -169,8 +169,8 @@ RSpec.describe Flayyer::FlayyerAI do
 end
 
 RSpec.describe Flayyer::FlayyerAI do
-  key = 'sg1j0HVy9bsMihJqa8Qwu8ZYgCYHG0tx'
   it 'encodes url with jwt' do
+    key = 'sg1j0HVy9bsMihJqa8Qwu8ZYgCYHG0tx'
     variables = {}
     flayyer = Flayyer::FlayyerAI.create do |f|
       f.project = 'project'
