@@ -27,7 +27,7 @@ module Flayyer
       @path.start_with?("/") ? @path : "/#{@path}"
     end
 
-    def default_hash(ignoreV)
+    def params_hash(ignoreV)
       defaults = {
         __v: @meta[:v].nil? ? Time.now.to_i : @meta[:v], # This forces crawlers to refresh the image
         __id: @meta[:id] || nil,
@@ -50,7 +50,7 @@ module Flayyer
         end
       end
 
-      defaults = self.default_hash(ignoreV)
+      defaults = self.params_hash(ignoreV)
       result = FlayyerHash.new(defaults)
       result.to_query.split("&").sort().join("&")
     end
@@ -65,7 +65,7 @@ module Flayyer
         mac = OpenSSL::HMAC.hexdigest('SHA256', key, data)
         mac[0..15]
       elsif strategy.downcase == "jwt"
-        payload = self.default_hash(true)
+        payload = self.params_hash(true)
         JWT.encode(payload, key, 'HS256')
       else
         raise Error.new('Invalid `strategy`. Valid options are `HMAC` or `JWT`.')
