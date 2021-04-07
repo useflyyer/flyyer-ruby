@@ -65,7 +65,7 @@ module Flayyer
         mac = OpenSSL::HMAC.hexdigest('SHA256', key, data)
         mac[0..15]
       elsif strategy.downcase == "jwt"
-        payload = self.params_hash(true).compact
+        payload = { "params": self.params_hash(true).compact, "path": self.path_safe}
         JWT.encode(payload, key, 'HS256')
       else
         raise Error.new('Invalid `strategy`. Valid options are `HMAC` or `JWT`.')
