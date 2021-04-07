@@ -101,7 +101,7 @@ RSpec.describe Flayyer::FlayyerAI do
       f.project = 'project'
     end
     href = flayyer.href
-    expect(href).to match(/https:\/\/flayyer.ai\/v2\/project\/_\/__v=\d+\//)
+    expect(href).to match(/https:\/\/flayyer.ai\/v2\/project\/_\/__v=\d+/)
   end
 end
 
@@ -123,7 +123,7 @@ RSpec.describe Flayyer::FlayyerAI do
       f.path = '/path/to/collection?sort=price'
     end
     href = flayyer.href
-    expect(href).to match(/https:\/\/flayyer.ai\/v2\/project\/_\/__v=\d+\/path\/to\/collection\/?\?sort=price/)
+    expect(href).to match(/https:\/\/flayyer.ai\/v2\/project\/_\/__v=\d+\/path\/to\/collection\?sort=price/)
   end
 end
 
@@ -144,7 +144,7 @@ RSpec.describe Flayyer::FlayyerAI do
       }
     end
     href = flayyer.href
-    expect(href).to match(/https:\/\/flayyer.ai\/v2\/project\/361b2a456daf8415\/__id=dev\+forgot\+to\+slugify&__v=\d+&_h=200&_w=100&title=Hello\+world%21\/collections\/col\/?/)
+    expect(href).to match(/https:\/\/flayyer.ai\/v2\/project\/361b2a456daf8415\/__id=dev\+forgot\+to\+slugify&__v=\d+&_h=200&_w=100&title=Hello\+world%21\/collections\/col/)
   end
 end
 
@@ -174,7 +174,7 @@ RSpec.describe Flayyer::FlayyerAI do
     flayyer = Flayyer::FlayyerAI.create do |f|
       f.project = 'project'
       f.path = '/collections/col'
-      f.secret = 'sg1j0HVy9bsMihJqa8Qwu8ZYgCYHG0tx'
+      f.secret = key
       f.strategy = 'JWT'
       f.variables = {}
       f.meta = {
@@ -199,7 +199,7 @@ RSpec.describe Flayyer::FlayyerAI do
     flayyer = Flayyer::FlayyerAI.create do |f|
       f.project = 'project'
       f.path = 'collections/col'
-      f.secret = 'sg1j0HVy9bsMihJqa8Qwu8ZYgCYHG0tx'
+      f.secret = key
       f.strategy = 'JWT'
       f.meta = {
         id: 'dev forgot to slugify',
