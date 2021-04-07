@@ -163,8 +163,8 @@ RSpec.describe Flayyer::FlayyerAI do
     token = href.scan(/(jwt-)(.*)(\?)/).last[1]
     decoded = JWT.decode(token, key, true, { algorithm: 'HS256' })
     payload = decoded.first
-    expect(flayyer.variables).to eq({})
-    expect(payload == flayyer.params_hash(true).compact)
+    expect(payload["params"]).to eq({})
+    expect(payload["path"]).to eq("/")
   end
 end
 
@@ -187,9 +187,9 @@ RSpec.describe Flayyer::FlayyerAI do
     token = href.scan(/(jwt-)(.*)(\?)/).last[1]
     decoded = JWT.decode(token, key, true, { algorithm: 'HS256' })
     payload = decoded.first
-    expect(flayyer.meta[:width]).to eq('100')
-    expect(flayyer.meta[:height]).to eq(200)
-    expect(payload == flayyer.params_hash(true).compact)
+    expect(payload["params"]["_w"]).to eq('100')
+    expect(payload["params"]["_h"]).to eq(200)
+    expect(payload == { "params": flayyer.params_hash(true).compact, "path": "/collections/col" })
   end
 end
 
@@ -214,8 +214,8 @@ RSpec.describe Flayyer::FlayyerAI do
     token = href.scan(/(jwt-)(.*)(\?)/).last[1]
     decoded = JWT.decode(token, key, true, { algorithm: 'HS256' })
     payload = decoded.first
-    expect(flayyer.meta[:id]).to eq('dev forgot to slugify')
-    expect(payload == flayyer.params_hash(true).compact)
+    expect(payload["params"]["__id"]).to eq('dev forgot to slugify')
+    expect(payload == { "params": flayyer.params_hash(true).compact, "path": "/collections/col" })
   end
 end
 
