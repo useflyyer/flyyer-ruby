@@ -29,7 +29,7 @@ module Flayyer
 
     def params_hash(ignoreV)
       defaults = {
-        __v: @meta[:v].nil? ? Time.now.to_i : @meta[:v], # This forces crawlers to refresh the image
+        __v: @meta[:v] || Time.now.to_i, # This forces crawlers to refresh the image
         __id: @meta[:id] || nil,
         _w: @meta[:width] || nil,
         _h: @meta[:height] || nil,
@@ -72,7 +72,7 @@ module Flayyer
       end
     end
 
-    # Create a https://flayyer.com string.
+    # Create a https://FLAYYER.com string.
     # If you are on Ruby on Rails please use .html_safe when rendering this string into the HTML
     def href
       raise Error.new('Missing "project" property') if @project.nil?
