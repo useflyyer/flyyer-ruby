@@ -82,7 +82,7 @@ module Flayyer
       if strategy.nil? || strategy != "JWT" then
         "https://flayyer.ai/v2/#{@project}/#{signature}/#{params}#{self.path_safe}"
       else
-        "https://flayyer.ai/v2/#{@project}/jwt-#{signature}?__v=#{Time.now.to_i}"
+        "https://flayyer.ai/v2/#{@project}/jwt-#{signature}?__v=#{@meta[:v] || Time.now.to_i}"
       end
     end
   end
