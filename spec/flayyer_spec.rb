@@ -1,3 +1,5 @@
+require 'jwt'
+
 RSpec.describe Flayyer do
   it 'has a version number' do
     expect(Flayyer::VERSION).not_to be nil
@@ -11,14 +13,14 @@ RSpec.describe Flayyer::FlayyerURL do
       f.deck = 'deck'
       f.template = 'template'
       f.variables = {
-          title: 'Hello world!',
-          description: nil,
-          'img' => '',
+        title: 'Hello world!',
+        description: nil,
+        'img' => ''
       }
       f.meta = {
         id: 'dev forgot to slugify',
         width: '100',
-        :height => 200,
+        height: 200
       }
       f.meta['resolution'] = 1.0 # test with string key
     end
@@ -67,6 +69,153 @@ RSpec.describe Flayyer::FlayyerURL do
     expect(flayyer.extension).to eq('jpeg')
     href = flayyer.href
     expect(href).to start_with('https://flayyer.io/v2/tenant/deck/template.jpeg?__v=')
+  end
+end
+
+RSpec.describe Flayyer::FlayyerAI do
+  it 'encodes url happy path' do
+    flayyer = Flayyer::FlayyerAI.create do |f|
+      f.project = 'project'
+      f.path = '/path/to/product'
+      f.variables = {
+        title: 'Hello world!',
+        description: nil,
+        'img' => ''
+      }
+      f.meta = {
+        id: 'dev forgot to slugify',
+        width: '100',
+        height: 200,
+        v: ''
+      }
+      f.meta['resolution'] = 1.0 # test with string key
+    end
+    href = flayyer.href
+    expect(href).to eq('https://flayyer.ai/v2/project/_/__id=dev+forgot+to+slugify&__v=&_h=200&_res=1.0&_w=100&img=&title=Hello+world%21/path/to/product')
+  end
+end
+
+RSpec.describe Flayyer::FlayyerAI do
+  it 'encodes url with default values' do
+    flayyer = Flayyer::FlayyerAI.create do |f|
+      f.project = 'project'
+    end
+    href = flayyer.href
+    expect(href).to match(/https:\/\/flayyer.ai\/v2\/project\/_\/__v=\d+/)
+  end
+end
+
+RSpec.describe Flayyer::FlayyerAI do
+  it 'encodes url with path missing / at start' do
+    flayyer = Flayyer::FlayyerAI.create do |f|
+      f.project = 'project'
+      f.path = 'path/to/product'
+    end
+    href = flayyer.href
+    expect(href).to match(/https:\/\/flayyer.ai\/v2\/project\/_\/__v=\d+\/path\/to\/product/)
+  end
+end
+
+RSpec.describe Flayyer::FlayyerAI do
+  it 'encodes url with query params' do
+    flayyer = Flayyer::FlayyerAI.create do |f|
+      f.project = 'project'
+      f.path = '/path/to/collection?sort=price'
+    end
+    href = flayyer.href
+    expect(href).to match(/https:\/\/flayyer.ai\/v2\/project\/_\/__v=\d+\/path\/to\/collection\?sort=price/)
+  end
+end
+
+RSpec.describe Flayyer::FlayyerAI do
+  it 'encodes url with hmac signature' do
+    flayyer = Flayyer::FlayyerAI.create do |f|
+      f.project = 'project'
+      f.path = '/collections/col'
+      f.secret = 'sg1j0HVy9bsMihJqa8Qwu8ZYgCYHG0tx'
+      f.strategy = "HMAC"
+      f.meta = {
+        id: 'dev forgot to slugify',
+        width: '100',
+        height: 200,
+      }
+      f.variables = {
+        title: 'Hello world!',
+      }
+    end
+    href = flayyer.href
+    expect(href).to match(/https:\/\/flayyer.ai\/v2\/project\/361b2a456daf8415\/__id=dev\+forgot\+to\+slugify&__v=\d+&_h=200&_w=100&title=Hello\+world%21\/collections\/col/)
+  end
+end
+
+RSpec.describe Flayyer::FlayyerAI do
+  it 'encodes url with jwt with default values' do
+    key = 'sg1j0HVy9bsMihJqa8Qwu8ZYgCYHG0tx'
+    flayyer = Flayyer::FlayyerAI.create do |f|
+      f.project = 'project'
+      f.secret = key
+      f.strategy = "JWT"
+      f.variables = {}
+      f.meta = {}
+    end
+    href = flayyer.href
+
+    token = href.scan(/(jwt-)(.*)(\?)/).last[1]
+    decoded = JWT.decode(token, key, true, { algorithm: 'HS256' })
+    payload = decoded.first
+    expect(payload["params"]).to eq({})
+    expect(payload["path"]).to eq("/")
+  end
+end
+
+RSpec.describe Flayyer::FlayyerAI do
+  it 'encodes url with jwt with meta' do
+    key = 'sg1j0HVy9bsMihJqa8Qwu8ZYgCYHG0tx'
+    flayyer = Flayyer::FlayyerAI.create do |f|
+      f.project = 'project'
+      f.path = '/collections/col'
+      f.secret = key
+      f.strategy = 'JWT'
+      f.variables = {}
+      f.meta = {
+        id: 'dev forgot to slugify',
+        width: '100',
+        height: 200,
+      }
+    end
+    href = flayyer.href
+    token = href.scan(/(jwt-)(.*)(\?)/).last[1]
+    decoded = JWT.decode(token, key, true, { algorithm: 'HS256' })
+    payload = decoded.first
+    expect(payload["params"]["_w"]).to eq('100')
+    expect(payload["params"]["_h"]).to eq(200)
+    expect(payload == { "params": flayyer.params_hash(true).compact, "path": "/collections/col" })
+  end
+end
+
+RSpec.describe Flayyer::FlayyerAI do
+  it 'encodes url with jwt with path missing / at start' do
+    key = 'sg1j0HVy9bsMihJqa8Qwu8ZYgCYHG0tx'
+    flayyer = Flayyer::FlayyerAI.create do |f|
+      f.project = 'project'
+      f.path = 'collections/col'
+      f.secret = key
+      f.strategy = 'JWT'
+      f.meta = {
+        id: 'dev forgot to slugify',
+        width: '100',
+        height: 200,
+      }
+      f.variables = {
+        title: 'Hello world!',
+      }
+    end
+    href = flayyer.href
+    token = href.scan(/(jwt-)(.*)(\?)/).last[1]
+    decoded = JWT.decode(token, key, true, { algorithm: 'HS256' })
+    payload = decoded.first
+    expect(payload["params"]["__id"]).to eq('dev forgot to slugify')
+    expect(payload == { "params": flayyer.params_hash(true).compact, "path": "/collections/col" })
   end
 end
 
