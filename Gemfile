@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-# Specify your gem's dependencies in flayyer.gemspec
+# Specify your gem's dependencies in flyyer.gemspec
 gemspec
 
 gem 'rake', '~> 12.0'

@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    flayyer (1.3.0)
+    flyyer (2.0.0)
 
 GEM
   remote: https://rubygems.org/
@@ -27,7 +27,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  flayyer!
+  flyyer!
   jwt
   rake (~> 12.0)
   rspec (~> 3.0)
