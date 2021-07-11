@@ -93,7 +93,7 @@ Here you have a detailed full example for project `website-com` and path `/path/
 
 ```ruby
 flyyer = Flyyer::Flyyer.create do |f|
-  # [Required] Your project slug, find it in your dashboard https://flyyer.io/dashboard/.
+  # [Required] Your project slug, find it in your dashboard https://www.flyyer.io/dashboard/_/projects/_/integrate.
   f.project = 'website-com'
   # [Recommended] The current path of your website (by default it's `/`).
   f.path = '/path/to/product'
