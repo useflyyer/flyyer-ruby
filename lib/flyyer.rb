@@ -1,12 +1,12 @@
-require 'flayyer/version'
+require 'flyyer/version'
 require 'uri'
 require 'openssl'
 require 'jwt'
 
-module Flayyer
+module Flyyer
   class Error < StandardError; end
 
-  class FlayyerAI
+  class Flyyer
     attr_accessor :project, :path, :variables, :meta, :secret, :strategy
 
     def self.create(&block)
@@ -51,7 +51,7 @@ module Flayyer
       end
 
       defaults = self.params_hash(ignoreV)
-      result = FlayyerHash.new(defaults)
+      result = FlyyerHash.new(defaults)
       result.to_query.split("&").sort().join("&")
     end
 
@@ -80,14 +80,14 @@ module Flayyer
       signature = self.sign
       params = self.querystring
       if strategy.nil? || strategy != "JWT" then
-        "https://flayyer.ai/v2/#{@project}/#{signature}/#{params}#{self.path_safe}"
+        "https://cdn.flyyer.io/v2/#{@project}/#{signature}/#{params}#{self.path_safe}"
       else
-        "https://flayyer.ai/v2/#{@project}/jwt-#{signature}?__v=#{@meta[:v] || Time.now.to_i}"
+        "https://cdn.flyyer.io/v2/#{@project}/jwt-#{signature}?__v=#{@meta[:v] || Time.now.to_i}"
       end
     end
   end
 
-  class FlayyerURL
+  class FlyyerRender
     attr_accessor :version, :tenant, :deck, :template, :extension, :variables, :meta
 
     def self.create(&block)
@@ -123,11 +123,11 @@ module Flayyer
         _res: @meta[:resolution] || nil,
         _ua: @meta[:agent] || nil
       }
-      result = FlayyerHash.new(@variables.nil? ? defaults : defaults.merge(@variables))
+      result = FlyyerHash.new(@variables.nil? ? defaults : defaults.merge(@variables))
       result.to_query
     end
 
-    # Create a https://flayyer.com string.
+    # Create a https://flyyer.io string.
     # If you are on Ruby on Rails please use .html_safe when rendering this string into the HTML
     def href
       raise Error.new('Missing "tenant" property') if @tenant.nil?
@@ -135,15 +135,15 @@ module Flayyer
       raise Error.new('Missing "template" property') if @template.nil?
 
       if @version.nil?
-        "https://flayyer.io/v2/#{@tenant}/#{@deck}/#{@template}.#{@extension}?#{self.querystring}"
+        "https://cdn.flyyer.io/render/v2/#{@tenant}/#{@deck}/#{@template}.#{@extension}?#{self.querystring}"
       else
-        "https://flayyer.io/v2/#{@tenant}/#{@deck}/#{@template}.#{@version}.#{@extension}?#{self.querystring}"
+        "https://cdn.flyyer.io/render/v2/#{@tenant}/#{@deck}/#{@template}.#{@version}.#{@extension}?#{self.querystring}"
       end
     end
   end
 
   # A compatible qs stringify/parse (https://github.com/ljharb/qs)
-  class FlayyerHash
+  class FlyyerHash
     @hash = {}
     def initialize(hash)
       @hash = hash
@@ -154,7 +154,7 @@ module Flayyer
         new_key = key.nil? ? k : "#{key}[#{k}]"
         v = Hash[v.each_with_index.to_a.map(&:reverse)] if v.is_a?(Array)
         if v.is_a?(Hash)
-          h.merge!(FlayyerHash.new(v).to_query_hash(new_key))
+          h.merge!(FlyyerHash.new(v).to_query_hash(new_key))
         elsif v.nil?
           # skip null values
         else

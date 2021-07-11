@@ -1,24 +1,24 @@
-require_relative 'lib/flayyer/version'
+require_relative 'lib/flyyer/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = 'flayyer'
-  spec.version       = Flayyer::VERSION
-  spec.authors       = ['Patricio López Juri']
-  spec.email         = ['patricio@flayyer.com']
+  spec.name          = 'flyyer'
+  spec.version       = Flyyer::VERSION
+  spec.authors       = ['Patricio López Juri', 'Franco Méndez Z']
+  spec.email         = ['patricio@flyyer.io', 'franco@flyyer.io']
 
-  spec.summary       = 'FLAYYER.com helper classes and methods'
+  spec.summary       = 'FLYYER.io helper classes and methods'
   # spec.summary       = %q{TODO: Write a short summary, because RubyGems requires one.}
-  spec.description   = 'FLAYYER.com helper classes and methods'
+  spec.description   = 'FLYYER.io helper classes and methods'
   # spec.description   = %q{TODO: Write a longer description or delete this line.}
-  spec.homepage      = 'https://github.com/flayyer/flayyer-ruby'
+  spec.homepage      = 'https://github.com/useflyyer/flyyer-ruby'
   spec.license       = 'MIT'
   spec.required_ruby_version = Gem::Requirement.new('>= 2.3.0')
 
   # spec.metadata['allowed_push_host'] = 'TODO: Set to 'http://mygemserver.com''
 
   spec.metadata['homepage_uri'] = spec.homepage
-  spec.metadata['source_code_uri'] = 'https://github.com/flayyer/flayyer-ruby'
-  spec.metadata['changelog_uri'] = 'https://github.com/flayyer/flayyer-ruby'
+  spec.metadata['source_code_uri'] = 'https://github.com/useflyyer/flyyer-ruby'
+  spec.metadata['changelog_uri'] = 'https://github.com/useflyyer/flyyer-ruby'
 
   # Specify which files should be added to the gem when it is released.
   # The `git ls-files -z` loads the files in the RubyGem that have been added into git.
