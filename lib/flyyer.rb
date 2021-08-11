@@ -72,7 +72,7 @@ module Flyyer
       end
     end
 
-    # Create a https://FLAYYER.com string.
+    # Create a https://FLYYER.io string.
     # If you are on Ruby on Rails please use .html_safe when rendering this string into the HTML
     def href
       raise Error.new('Missing "project" property') if @project.nil?
