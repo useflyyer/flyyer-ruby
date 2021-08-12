@@ -6,6 +6,21 @@ RSpec.describe Flyyer do
   end
 end
 
+RSpec.describe Flyyer::FlyyerHash do
+  it 'stringifies hash of primitives' do
+    hash = { a: 'hello', b: 100, c: false, d: nil, b: 999 }
+    str = Flyyer::FlyyerHash.new(hash).to_query
+    expect(str).to eq('a=hello&b=999&c=false')
+  end
+
+  it 'stringifies a complex hash' do
+    hash = { a: { aa: 'bar', ab: 'foo' }, b: [{ c: 'foo' }, { c: 'bar' }] }
+    str = Flyyer::FlyyerHash.new(hash).to_query
+    decoded = CGI.unescape(str)
+    expect(decoded).to eq('a[aa]=bar&a[ab]=foo&b[0][c]=foo&b[1][c]=bar')
+  end
+end
+
 RSpec.describe Flyyer::FlyyerRender do
   it 'encodes url' do
     flyyer = Flyyer::FlyyerRender.create do |f|
@@ -93,9 +108,7 @@ RSpec.describe Flyyer::Flyyer do
     href = flyyer.href
     expect(href).to eq('https://cdn.flyyer.io/v2/project/_/__id=dev+forgot+to+slugify&__v=&_h=200&_res=1.0&_w=100&img=&title=Hello+world%21/path/to/product')
   end
-end
 
-RSpec.describe Flyyer::Flyyer do
   it 'encodes url with default values' do
     flyyer = Flyyer::Flyyer.create do |f|
       f.project = 'project'
@@ -103,9 +116,7 @@ RSpec.describe Flyyer::Flyyer do
     href = flyyer.href
     expect(href).to match(/https:\/\/cdn.flyyer.io\/v2\/project\/_\/__v=\d+/)
   end
-end
 
-RSpec.describe Flyyer::Flyyer do
   it 'encodes url with path missing / at start' do
     flyyer = Flyyer::Flyyer.create do |f|
       f.project = 'project'
@@ -114,9 +125,7 @@ RSpec.describe Flyyer::Flyyer do
     href = flyyer.href
     expect(href).to match(/https:\/\/cdn.flyyer.io\/v2\/project\/_\/__v=\d+\/path\/to\/product/)
   end
-end
 
-RSpec.describe Flyyer::Flyyer do
   it 'encodes url with query params' do
     flyyer = Flyyer::Flyyer.create do |f|
       f.project = 'project'
@@ -125,9 +134,7 @@ RSpec.describe Flyyer::Flyyer do
     href = flyyer.href
     expect(href).to match(/https:\/\/cdn.flyyer.io\/v2\/project\/_\/__v=\d+\/path\/to\/collection\?sort=price/)
   end
-end
 
-RSpec.describe Flyyer::Flyyer do
   it 'encodes url with hmac signature' do
     flyyer = Flyyer::Flyyer.create do |f|
       f.project = 'project'
@@ -146,9 +153,7 @@ RSpec.describe Flyyer::Flyyer do
     href = flyyer.href
     expect(href).to match(/https:\/\/cdn.flyyer.io\/v2\/project\/361b2a456daf8415\/__id=dev\+forgot\+to\+slugify&__v=\d+&_h=200&_w=100&title=Hello\+world%21\/collections\/col/)
   end
-end
 
-RSpec.describe Flyyer::Flyyer do
   it 'encodes url with jwt with default values' do
     key = 'sg1j0HVy9bsMihJqa8Qwu8ZYgCYHG0tx'
     flyyer = Flyyer::Flyyer.create do |f|
@@ -166,9 +171,7 @@ RSpec.describe Flyyer::Flyyer do
     expect(payload["params"]).to eq({})
     expect(payload["path"]).to eq("/")
   end
-end
 
-RSpec.describe Flyyer::Flyyer do
   it 'encodes url with jwt with meta' do
     key = 'sg1j0HVy9bsMihJqa8Qwu8ZYgCYHG0tx'
     flyyer = Flyyer::Flyyer.create do |f|
@@ -191,9 +194,7 @@ RSpec.describe Flyyer::Flyyer do
     expect(payload["params"]["_h"]).to eq(200)
     expect(payload == { "params": flyyer.params_hash(true).compact, "path": "/collections/col" })
   end
-end
 
-RSpec.describe Flyyer::Flyyer do
   it 'encodes url with jwt with path missing / at start' do
     key = 'sg1j0HVy9bsMihJqa8Qwu8ZYgCYHG0tx'
     flyyer = Flyyer::Flyyer.create do |f|
@@ -216,20 +217,5 @@ RSpec.describe Flyyer::Flyyer do
     payload = decoded.first
     expect(payload["params"]["__id"]).to eq('dev forgot to slugify')
     expect(payload == { "params": flyyer.params_hash(true).compact, "path": "/collections/col" })
-  end
-end
-
-RSpec.describe Flyyer::FlyyerHash do
-  it 'stringifies hash of primitives' do
-    hash = { a: 'hello', b: 100, c: false, d: nil, b: 999 }
-    str = Flyyer::FlyyerHash.new(hash).to_query
-    expect(str).to eq('a=hello&b=999&c=false')
-  end
-
-  it 'stringifies a complex hash' do
-    hash = { a: { aa: 'bar', ab: 'foo' }, b: [{ c: 'foo' }, { c: 'bar' }] }
-    str = Flyyer::FlyyerHash.new(hash).to_query
-    decoded = CGI.unescape(str)
-    expect(decoded).to eq('a[aa]=bar&a[ab]=foo&b[0][c]=foo&b[1][c]=bar')
   end
 end
