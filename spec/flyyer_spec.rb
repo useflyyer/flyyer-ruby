@@ -32,6 +32,7 @@ RSpec.describe Flyyer::FlyyerRender do
         description: nil,
         'img' => ''
       }
+      f.extension = "jpeg"
       f.meta = {
         id: 'dev forgot to slugify',
         width: '100',
@@ -58,7 +59,7 @@ RSpec.describe Flyyer::FlyyerRender do
     expect(flyyer.deck).to eq(nil)
     expect(flyyer.template).to eq(nil)
     expect(flyyer.version).to eq(nil)
-    expect(flyyer.extension).to eq('jpeg')
+    expect(flyyer.extension).to eq(nil)
     expect { flyyer.href }.to raise_error(Flyyer::Error)
 
     flyyer = Flyyer::FlyyerRender.create do |f|
@@ -69,7 +70,7 @@ RSpec.describe Flyyer::FlyyerRender do
     expect(flyyer.deck).to eq('deck')
     expect(flyyer.template).to eq(nil)
     expect(flyyer.version).to eq(nil)
-    expect(flyyer.extension).to eq('jpeg')
+    expect(flyyer.extension).to eq(nil)
     expect { flyyer.href }.to raise_error(Flyyer::Error)
 
     flyyer = Flyyer::FlyyerRender.create do |f|
