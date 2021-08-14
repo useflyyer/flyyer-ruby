@@ -82,9 +82,87 @@ RSpec.describe Flyyer::FlyyerRender do
     expect(flyyer.deck).to eq('deck')
     expect(flyyer.template).to eq('template')
     expect(flyyer.version).to eq(nil)
-    expect(flyyer.extension).to eq('jpeg')
+    expect(flyyer.extension).to eq(nil)
     href = flyyer.href
-    expect(href).to start_with('https://cdn.flyyer.io/render/v2/tenant/deck/template.jpeg?__v=')
+    expect(href).to start_with('https://cdn.flyyer.io/render/v2/tenant/deck/template?__v=')
+
+    flyyer = Flyyer::FlyyerRender.create do |f|
+      f.tenant = 'tenant'
+      f.deck = 'deck'
+      f.template = 'template'
+      f.strategy = "hmac"
+      f.secret = nil
+    end
+    expect(flyyer.tenant).to eq('tenant')
+    expect(flyyer.deck).to eq('deck')
+    expect(flyyer.template).to eq('template')
+    expect(flyyer.version).to eq(nil)
+    expect(flyyer.extension).to eq(nil)
+    expect { flyyer.href }.to raise_error(Flyyer::Error)
+  end
+
+  it 'encodes url with hmac signature' do
+    flyyer = Flyyer::FlyyerRender.create do |f|
+      f.tenant = 'tenant'
+      f.deck = 'deck'
+      f.template = 'template'
+      f.extension = 'jpeg'
+      f.secret = 'sg1j0HVy9bsMihJqa8Qwu8ZYgCYHG0tx'
+      f.strategy = 'HMAC'
+      f.variables = {
+        title: 'Hello world!'
+      }
+    end
+    href = flyyer.href
+    expect(href).to match(%r{https:\/\/cdn.flyyer.io\/render\/v2\/tenant\/deck\/template.jpeg\?__v=\d+&title=Hello\+world%21&__hmac=6b631ae8c4ca2977})
+  end
+
+  it 'encodes url with jwt with default values' do
+    key = 'sg1j0HVy9bsMihJqa8Qwu8ZYgCYHG0tx'
+    flyyer = Flyyer::FlyyerRender.create do |f|
+      f.tenant = 'tenant'
+      f.deck = 'deck'
+      f.template = 'template'
+      f.secret = key
+      f.strategy = "JWT"
+      f.version = 4
+      f.variables = {}
+      f.meta = {}
+    end
+    href = flyyer.href
+    raw = href.scan(/jwt=.*/).first
+    token = raw.slice(4..(raw.index('&__v=') || raw.length) - 1)
+    decoded = JWT.decode(token, key, true, { algorithm: 'HS256' })
+    payload = decoded.first
+    expect(payload).to eq({"__id"=>nil, "_h"=>nil, "_res"=>nil, "_ua"=>nil, "_w"=>nil, "deck"=>"deck", "ext"=>nil, "template"=>"template", "version"=>4})
+    expect(href).to match(%r{https:\/\/cdn.flyyer.io\/render\/v2\/tenant\?__jwt=.*?\&__v=\d+})
+  end
+
+  it 'encodes url with jwt with meta and variables' do
+    key = 'sg1j0HVy9bsMihJqa8Qwu8ZYgCYHG0tx'
+    flyyer = Flyyer::FlyyerRender.create do |f|
+      f.tenant = 'tenant'
+      f.deck = 'deck'
+      f.template = 'template'
+      f.secret = key
+      f.strategy = "JWT"
+      f.version = 4
+      f.meta = {
+        id: 'dev forgot to slugify',
+        width: '100',
+        height: 200
+      }
+      f.variables = {
+        title: 'Hello world!'
+      }
+    end
+    href = flyyer.href
+    raw = href.scan(/jwt=.*/).first
+    token = raw.slice(4..(raw.index('&__v=') || raw.length) - 1)
+    decoded = JWT.decode(token, key, true, { algorithm: 'HS256' })
+    payload = decoded.first
+    expect(payload).to eq({"__id"=>"dev forgot to slugify", "_h"=>200, "_res"=>nil, "_ua"=>nil, "_w"=>"100", "deck"=>"deck", "ext"=>nil, "template"=>"template", "title"=>"Hello world!", "version"=>4})
+    expect(href).to match(%r{https:\/\/cdn.flyyer.io\/render\/v2\/tenant\?__jwt=.*?\&__v=\d+})
   end
 end
 
@@ -115,7 +193,7 @@ RSpec.describe Flyyer::Flyyer do
       f.project = 'project'
     end
     href = flyyer.href
-    expect(href).to match(/https:\/\/cdn.flyyer.io\/v2\/project\/_\/__v=\d+/)
+    expect(href).to match(%r{https://cdn.flyyer.io/v2/project/_/__v=\d+})
   end
 
   it 'encodes url with path missing / at start' do
@@ -124,7 +202,7 @@ RSpec.describe Flyyer::Flyyer do
       f.path = 'path/to/product'
     end
     href = flyyer.href
-    expect(href).to match(/https:\/\/cdn.flyyer.io\/v2\/project\/_\/__v=\d+\/path\/to\/product/)
+    expect(href).to match(%r{https://cdn.flyyer.io/v2/project/_/__v=\d+/path/to/product})
   end
 
   it 'encodes url with query params' do
@@ -133,7 +211,7 @@ RSpec.describe Flyyer::Flyyer do
       f.path = '/path/to/collection?sort=price'
     end
     href = flyyer.href
-    expect(href).to match(/https:\/\/cdn.flyyer.io\/v2\/project\/_\/__v=\d+\/path\/to\/collection\?sort=price/)
+    expect(href).to match(%r{https://cdn.flyyer.io/v2/project/_/__v=\d+/path/to/collection\?sort=price})
   end
 
   it 'encodes url with hmac signature' do
@@ -141,18 +219,18 @@ RSpec.describe Flyyer::Flyyer do
       f.project = 'project'
       f.path = '/collections/col'
       f.secret = 'sg1j0HVy9bsMihJqa8Qwu8ZYgCYHG0tx'
-      f.strategy = "HMAC"
+      f.strategy = 'HMAC'
       f.meta = {
         id: 'dev forgot to slugify',
         width: '100',
-        height: 200,
+        height: 200
       }
       f.variables = {
-        title: 'Hello world!',
+        title: 'Hello world!'
       }
     end
     href = flyyer.href
-    expect(href).to match(/https:\/\/cdn.flyyer.io\/v2\/project\/361b2a456daf8415\/__id=dev\+forgot\+to\+slugify&__v=\d+&_h=200&_w=100&title=Hello\+world%21\/collections\/col/)
+    expect(href).to match(%r{https://cdn.flyyer.io/v2/project/361b2a456daf8415/__id=dev\+forgot\+to\+slugify&__v=\d+&_h=200&_w=100&title=Hello\+world%21/collections/col})
   end
 
   it 'encodes url with jwt with default values' do
@@ -160,7 +238,7 @@ RSpec.describe Flyyer::Flyyer do
     flyyer = Flyyer::Flyyer.create do |f|
       f.project = 'project'
       f.secret = key
-      f.strategy = "JWT"
+      f.strategy = 'JWT'
       f.variables = {}
       f.meta = {}
     end
@@ -169,8 +247,8 @@ RSpec.describe Flyyer::Flyyer do
     token = href.scan(/(jwt-)(.*)(\?)/).last[1]
     decoded = JWT.decode(token, key, true, { algorithm: 'HS256' })
     payload = decoded.first
-    expect(payload["params"]).to eq({})
-    expect(payload["path"]).to eq("/")
+    expect(payload['params']).to eq({})
+    expect(payload['path']).to eq('/')
   end
 
   it 'encodes url with jwt with meta' do
@@ -184,16 +262,16 @@ RSpec.describe Flyyer::Flyyer do
       f.meta = {
         id: 'dev forgot to slugify',
         width: '100',
-        height: 200,
+        height: 200
       }
     end
     href = flyyer.href
     token = href.scan(/(jwt-)(.*)(\?)/).last[1]
     decoded = JWT.decode(token, key, true, { algorithm: 'HS256' })
     payload = decoded.first
-    expect(payload["params"]["_w"]).to eq('100')
-    expect(payload["params"]["_h"]).to eq(200)
-    expect(payload == { "params": flyyer.params_hash(true).compact, "path": "/collections/col" })
+    expect(payload['params']['_w']).to eq('100')
+    expect(payload['params']['_h']).to eq(200)
+    expect(payload == { "params": flyyer.params_hash(true).compact, "path": '/collections/col' })
   end
 
   it 'encodes url with jwt with path missing / at start' do
@@ -206,17 +284,17 @@ RSpec.describe Flyyer::Flyyer do
       f.meta = {
         id: 'dev forgot to slugify',
         width: '100',
-        height: 200,
+        height: 200
       }
       f.variables = {
-        title: 'Hello world!',
+        title: 'Hello world!'
       }
     end
     href = flyyer.href
     token = href.scan(/(jwt-)(.*)(\?)/).last[1]
     decoded = JWT.decode(token, key, true, { algorithm: 'HS256' })
     payload = decoded.first
-    expect(payload["params"]["__id"]).to eq('dev forgot to slugify')
-    expect(payload == { "params": flyyer.params_hash(true).compact, "path": "/collections/col" })
+    expect(payload['params']['__id']).to eq('dev forgot to slugify')
+    expect(payload == { "params": flyyer.params_hash(true).compact, "path": '/collections/col' })
   end
 end
