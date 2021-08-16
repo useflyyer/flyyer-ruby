@@ -100,7 +100,7 @@ module Flyyer
       @template = template
       @version = version
       @extension = extension
-      @variables = variables
+      @variables = variables || {}
       @meta = meta
       @secret = secret
       @strategy = strategy
@@ -117,36 +117,37 @@ module Flyyer
         end
       end
 
-      default_v = {
-        __v: @meta[:v].nil? ? Time.now.to_i : @meta[:v], # This forces crawlers to refresh the image
-      }
-      defaults_without_v = {
+      default_v = {__v: @meta[:v].nil? ? Time.now.to_i : @meta[:v]} # This forces crawlers to refresh the image
+      defaults = {
         __id: @meta[:id] || nil,
         _w: @meta[:width] || nil,
         _h: @meta[:height] || nil,
         _res: @meta[:resolution] || nil,
         _ua: @meta[:agent] || nil,
       }
+      jwt_defaults = {
+        i: @meta[:id] || nil,
+        w: @meta[:width] || nil,
+        h: @meta[:height] || nil,
+        r: @meta[:resolution] || nil,
+        u: @meta[:agent] || nil,
+        var: @variables,
+      }
       if @strategy && @secret
         key = @secret
         if @strategy.downcase == "hmac"
-          hashed_without_v = FlyyerHash.new(defaults_without_v.merge(@variables || {}))
-          data = [@deck, @template, @version || "", @extension || "", hashed_without_v.to_query].join("#")
+          default_query = FlyyerHash.new(defaults).to_query
+          data = [@deck, @template, @version || "", @extension || "", default_query].join("#")
           __hmac = OpenSSL::HMAC.hexdigest('SHA256', key, data)[0..15]
-          return FlyyerHash.new([default_v, defaults_without_v, @variables || {}, {__hmac: __hmac}].inject(&:merge)).to_query
+          return FlyyerHash.new([defaults, default_v, @variables, {__hmac: __hmac}].inject(&:merge)).to_query
         end
         if @strategy.downcase == "jwt"
-          payload = [
-            { deck: @deck, template: @template, version: @version, ext: @extension },
-            defaults_without_v,
-            variables || {},
-          ].inject(&:merge)
+          payload = [{ d: @deck, t: @template, v: @version, e: @extension }, jwt_defaults].inject(&:merge)
           __jwt = JWT.encode(payload, key, 'HS256')
-          __v = @meta[:v].nil? ? Time.now.to_i : @meta[:v]
-          return FlyyerHash.new({ __jwt: __jwt, __v: __v }).to_query
+          return FlyyerHash.new({ __jwt: __jwt }.merge(default_v)).to_query
         end
       else
-        return FlyyerHash.new([default_v, defaults_without_v, @variables || {}].inject(&:merge)).to_query
+        return FlyyerHash.new([default_v, defaults, @variables].inject(&:merge)).to_query
       end
     end
 
