@@ -41,14 +41,15 @@ RSpec.describe Flyyer::FlyyerRender do
       f.meta['resolution'] = 1.0 # test with string key
     end
     href = flyyer.href
-    expect(href).to start_with('https://cdn.flyyer.io/render/v2/tenant/deck/template.jpeg?__v=')
-    expect(href).to include('&title=Hello+world%21')
-    expect(href).to include('&img=')
-    expect(href).to include('&__id=dev+forgot+to+slugify')
-    expect(href).to include('&_w=100')
-    expect(href).to include('&_h=200')
-    expect(href).to include('&_res=1.0')
-    expect(href).not_to include('&description')
+    expect(href).to start_with('https://cdn.flyyer.io/render/v2/tenant/deck/template.jpeg?')
+    expect(href).to include('__v=')
+    expect(href).to include('title=Hello+world%21')
+    expect(href).to include('img=')
+    expect(href).to include('__id=dev+forgot+to+slugify')
+    expect(href).to include('_w=100')
+    expect(href).to include('_h=200')
+    expect(href).to include('_res=1.0')
+    expect(href).not_to include('description=')
   end
 
   it 'raises if missing arguments' do
@@ -114,7 +115,7 @@ RSpec.describe Flyyer::FlyyerRender do
       }
     end
     href = flyyer.href
-    expect(href).to match(%r{https:\/\/cdn.flyyer.io\/render\/v2\/tenant\/deck\/template.jpeg\?__v=\d+&title=Hello\+world%21&__hmac=6b631ae8c4ca2977})
+    expect(href).to match(%r{https:\/\/cdn.flyyer.io\/render\/v2\/tenant\/deck\/template.jpeg\?__v=\d+&title=Hello\+world%21&__hmac=c2be24edfbc7a57c})
   end
 
   it 'encodes url with jwt with default values' do
@@ -134,7 +135,7 @@ RSpec.describe Flyyer::FlyyerRender do
     token = raw.slice(4..(raw.index('&__v=') || raw.length) - 1)
     decoded = JWT.decode(token, key, true, { algorithm: 'HS256' })
     payload = decoded.first
-    expect(payload).to eq({"__id"=>nil, "_h"=>nil, "_res"=>nil, "_ua"=>nil, "_w"=>nil, "deck"=>"deck", "ext"=>nil, "template"=>"template", "version"=>4})
+    expect(payload).to eq({"i"=>nil, "h"=>nil, "r"=>nil, "u"=>nil, "w"=>nil, "d"=>"deck", "e"=>nil, "t"=>"template", "v"=>4, "var"=>{}})
     expect(href).to match(%r{https:\/\/cdn.flyyer.io\/render\/v2\/tenant\?__jwt=.*?\&__v=\d+})
   end
 
@@ -161,7 +162,7 @@ RSpec.describe Flyyer::FlyyerRender do
     token = raw.slice(4..(raw.index('&__v=') || raw.length) - 1)
     decoded = JWT.decode(token, key, true, { algorithm: 'HS256' })
     payload = decoded.first
-    expect(payload).to eq({"__id"=>"dev forgot to slugify", "_h"=>200, "_res"=>nil, "_ua"=>nil, "_w"=>"100", "deck"=>"deck", "ext"=>nil, "template"=>"template", "title"=>"Hello world!", "version"=>4})
+    expect(payload).to eq({"i"=>"dev forgot to slugify", "h"=>200, "r"=>nil, "u"=>nil, "w"=>"100", "d"=>"deck", "e"=>nil, "t"=>"template", "v"=>4, "var"=>{"title"=>"Hello world!"}})
     expect(href).to match(%r{https:\/\/cdn.flyyer.io\/render\/v2\/tenant\?__jwt=.*?\&__v=\d+})
   end
 end
