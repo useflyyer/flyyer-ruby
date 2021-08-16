@@ -72,7 +72,7 @@ module Flyyer
       end
     end
 
-    # Create a https://FLAYYER.com string.
+    # Create a https://FLYYER.io string.
     # If you are on Ruby on Rails please use .html_safe when rendering this string into the HTML
     def href
       raise Error.new('Missing "project" property') if @project.nil?
@@ -88,20 +88,22 @@ module Flyyer
   end
 
   class FlyyerRender
-    attr_accessor :version, :tenant, :deck, :template, :extension, :variables, :meta
+    attr_accessor :version, :tenant, :deck, :template, :extension, :variables, :meta, :secret, :strategy
 
     def self.create(&block)
       self.new(&block)
     end
 
-    def initialize(tenant = nil, deck = nil, template = nil, version = nil, extension = 'jpeg', variables = {}, meta = {})
+    def initialize(tenant = nil, deck = nil, template = nil, version = nil, extension = nil, variables = {}, meta = {}, secret = nil, strategy = nil)
       @tenant = tenant
       @deck = deck
       @template = template
       @version = version
       @extension = extension
-      @variables = variables
+      @variables = variables || {}
       @meta = meta
+      @secret = secret
+      @strategy = strategy
       yield(self) if block_given?
     end
 
@@ -115,16 +117,38 @@ module Flyyer
         end
       end
 
+      default_v = {__v: @meta[:v].nil? ? Time.now.to_i : @meta[:v]} # This forces crawlers to refresh the image
       defaults = {
-        __v: @meta[:v].nil? ? Time.now.to_i : @meta[:v], # This forces crawlers to refresh the image
         __id: @meta[:id] || nil,
         _w: @meta[:width] || nil,
         _h: @meta[:height] || nil,
         _res: @meta[:resolution] || nil,
-        _ua: @meta[:agent] || nil
+        _ua: @meta[:agent] || nil,
       }
-      result = FlyyerHash.new(@variables.nil? ? defaults : defaults.merge(@variables))
-      result.to_query
+      jwt_defaults = {
+        i: @meta[:id] || nil,
+        w: @meta[:width] || nil,
+        h: @meta[:height] || nil,
+        r: @meta[:resolution] || nil,
+        u: @meta[:agent] || nil,
+        var: @variables,
+      }
+      if @strategy && @secret
+        key = @secret
+        if @strategy.downcase == "hmac"
+          default_query = FlyyerHash.new(defaults).to_query
+          data = [@deck, @template, @version || "", @extension || "", default_query].join("#")
+          __hmac = OpenSSL::HMAC.hexdigest('SHA256', key, data)[0..15]
+          return FlyyerHash.new([defaults, default_v, @variables, {__hmac: __hmac}].inject(&:merge)).to_query
+        end
+        if @strategy.downcase == "jwt"
+          payload = [{ d: @deck, t: @template, v: @version, e: @extension }, jwt_defaults].inject(&:merge)
+          __jwt = JWT.encode(payload, key, 'HS256')
+          return FlyyerHash.new({ __jwt: __jwt }.merge(default_v)).to_query
+        end
+      else
+        return FlyyerHash.new([default_v, defaults, @variables].inject(&:merge)).to_query
+      end
     end
 
     # Create a https://flyyer.io string.
@@ -133,12 +157,20 @@ module Flyyer
       raise Error.new('Missing "tenant" property') if @tenant.nil?
       raise Error.new('Missing "deck" property') if @deck.nil?
       raise Error.new('Missing "template" property') if @template.nil?
+      raise Error.new('Got `secret` but missing `strategy`.  Valid options are `HMAC` or `JWT`.') if @secret && @strategy.nil?
+      raise Error.new('Got `strategy` but missing `secret`. You can find it in your project in Advanced settings.') if @strategy && @secret.nil?
+      raise Error.new('Invalid signing `strategy`. Valid options are `HMAC` or `JWT`.') if @strategy && @strategy.downcase != "jwt" && @strategy.downcase != "hmac"
 
-      if @version.nil?
-        "https://cdn.flyyer.io/render/v2/#{@tenant}/#{@deck}/#{@template}.#{@extension}?#{self.querystring}"
-      else
-        "https://cdn.flyyer.io/render/v2/#{@tenant}/#{@deck}/#{@template}.#{@version}.#{@extension}?#{self.querystring}"
+      base_href = "https://cdn.flyyer.io/render/v2/#{@tenant}"
+
+      if @strategy and @strategy.downcase == "jwt"
+        return "#{base_href}?#{self.querystring}"
       end
+
+      final_href = "#{base_href}/#{@deck}/#{@template}"
+      final_href << ".#{@version}" if @version
+      final_href << ".#{@extension}" if @extension
+      final_href << "?#{self.querystring}"
     end
   end
 
