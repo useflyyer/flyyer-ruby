@@ -125,23 +125,24 @@ module Flyyer
         _res: @meta[:resolution] || nil,
         _ua: @meta[:agent] || nil,
       }
-      jwt_defaults = {
-        i: @meta[:id] || nil,
-        w: @meta[:width] || nil,
-        h: @meta[:height] || nil,
-        r: @meta[:resolution] || nil,
-        u: @meta[:agent] || nil,
-        var: @variables,
-      }
       if @strategy && @secret
         key = @secret
         if @strategy.downcase == "hmac"
-          default_query = FlyyerHash.new(defaults).to_query
+          default_query = FlyyerHash.new([defaults, @variables].inject(&:merge)).to_query
+          puts [@deck, @template, @version || "", @extension || "", default_query].join("#")
           data = [@deck, @template, @version || "", @extension || "", default_query].join("#")
           __hmac = OpenSSL::HMAC.hexdigest('SHA256', key, data)[0..15]
           return FlyyerHash.new([defaults, default_v, @variables, {__hmac: __hmac}].inject(&:merge)).to_query
         end
         if @strategy.downcase == "jwt"
+          jwt_defaults = {
+            i: @meta[:id] || nil,
+            w: @meta[:width] || nil,
+            h: @meta[:height] || nil,
+            r: @meta[:resolution] || nil,
+            u: @meta[:agent] || nil,
+            var: @variables,
+          }
           payload = [{ d: @deck, t: @template, v: @version, e: @extension }, jwt_defaults].inject(&:merge)
           __jwt = JWT.encode(payload, key, 'HS256')
           return FlyyerHash.new({ __jwt: __jwt }.merge(default_v)).to_query
