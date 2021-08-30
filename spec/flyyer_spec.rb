@@ -115,7 +115,7 @@ RSpec.describe Flyyer::FlyyerRender do
       }
     end
     href = flyyer.href
-    expect(href).to match(%r{https:\/\/cdn.flyyer.io\/render\/v2\/tenant\/deck\/template.jpeg\?__v=\d+&title=Hello\+world%21&__hmac=c2be24edfbc7a57c})
+    expect(href).to match(%r{https:\/\/cdn.flyyer.io\/render\/v2\/tenant\/deck\/template.jpeg\?__v=\d+&title=Hello\+world%21&__hmac=6b631ae8c4ca2977})
   end
 
   it 'encodes url with jwt with default values' do
