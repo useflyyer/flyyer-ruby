@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    flyyer (2.1.0)
+    flyyer (2.1.1)
 
 GEM
   remote: https://rubygems.org/
