@@ -7,14 +7,15 @@ module Flyyer
   class Error < StandardError; end
 
   class Flyyer
-    attr_accessor :project, :path, :variables, :meta, :secret, :strategy
+    attr_accessor :project, :default, :path, :variables, :meta, :secret, :strategy
 
     def self.create(&block)
       self.new(&block)
     end
 
-    def initialize(project = nil, path = nil, variables = {}, meta = {}, secret = nil, strategy = nil)
+    def initialize(project = nil, default = nil, path = nil, variables = {}, meta = {}, secret = nil, strategy = nil)
       @project = project
+      @default = default
       @path = path || "/"
       @variables = variables
       @meta = meta
@@ -34,7 +35,8 @@ module Flyyer
         _w: @meta[:width] || nil,
         _h: @meta[:height] || nil,
         _res: @meta[:resolution] || nil,
-        _ua: @meta[:agent] || nil
+        _ua: @meta[:agent] || nil,
+        _def: @default || nil,
       }
       defaults.delete(:__v) if ignoreV
       @variables.nil? ? defaults : defaults.merge(@variables)

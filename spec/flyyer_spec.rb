@@ -215,6 +215,23 @@ RSpec.describe Flyyer::Flyyer do
     expect(href).to match(%r{https://cdn.flyyer.io/v2/project/_/__v=\d+/path/to/collection\?sort=price})
   end
 
+  it 'sets `default` image as `_def` param' do
+    flyyer0 = Flyyer::Flyyer.create do |f|
+      f.project = 'project'
+      f.path = 'path'
+      f.default = '/static/product/1.png'
+    end
+    href0 = flyyer0.href
+    expect(href0).to match(%r{https://cdn.flyyer.io/v2/project/_/__v=(\d+)&_def=%2Fstatic%2Fproduct%2F1.png/path})
+    flyyer1 = Flyyer::Flyyer.create do |f|
+      f.project = 'project'
+      f.path = 'path'
+      f.default = 'https://www.flyyer.io/logo.png'
+    end
+    href1 = flyyer1.href
+    expect(href1).to match(%r{https://cdn.flyyer.io/v2/project/_/__v=(\d+)&_def=https%3A%2F%2Fwww.flyyer.io%2Flogo.png/path})
+  end
+
   it 'encodes url with hmac signature' do
     flyyer = Flyyer::Flyyer.create do |f|
       f.project = 'project'
