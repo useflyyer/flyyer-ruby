@@ -29,17 +29,29 @@ module Flyyer
     end
 
     def params_hash(ignoreV)
-      defaults = {
-        __v: @meta[:v] || Time.now.to_i, # This forces crawlers to refresh the image
-        __id: @meta[:id] || nil,
-        _w: @meta[:width] || nil,
-        _h: @meta[:height] || nil,
-        _res: @meta[:resolution] || nil,
-        _ua: @meta[:agent] || nil,
-        _def: @default || nil,
-      }
-      defaults.delete(:__v) if ignoreV
-      @variables.nil? ? defaults : defaults.merge(@variables)
+      if @strategy and @strategy.downcase == "jwt" then
+        jwt_defaults = {
+          i: @meta[:id] || nil,
+          w: @meta[:width] || nil,
+          h: @meta[:height] || nil,
+          r: @meta[:resolution] || nil,
+          u: @meta[:agent] || nil,
+          def: @default || nil,
+        }
+        jwt_defaults
+      else
+        defaults = {
+          __v: @meta[:v] || Time.now.to_i, # This forces crawlers to refresh the image
+          __id: @meta[:id] || nil,
+          _w: @meta[:width] || nil,
+          _h: @meta[:height] || nil,
+          _res: @meta[:resolution] || nil,
+          _ua: @meta[:agent] || nil,
+          _def: @default || nil,
+        }
+        defaults.delete(:__v) if ignoreV
+        @variables.nil? ? defaults : defaults.merge(@variables)
+      end
     end
 
     def querystring(ignoreV = false)
