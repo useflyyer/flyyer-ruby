@@ -36,6 +36,7 @@ module Flyyer
           h: @meta[:height] || nil,
           r: @meta[:resolution] || nil,
           u: @meta[:agent] || nil,
+          var: @variables,
           def: @default || nil,
         }
         jwt_defaults

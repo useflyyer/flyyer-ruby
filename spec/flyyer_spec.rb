@@ -265,7 +265,7 @@ RSpec.describe Flyyer::Flyyer do
     token = href.scan(/(jwt-)(.*)(\?)/).last[1]
     decoded = JWT.decode(token, key, true, { algorithm: 'HS256' })
     payload = decoded.first
-    expect(payload['params']).to eq({})
+    expect(payload['params']).to eq({ "var" => {}})
     expect(payload['path']).to eq('/')
   end
 
@@ -379,5 +379,35 @@ RSpec.describe Flyyer::Flyyer do
     token = href.scan(/(jwt-)(.*)(\?)/).last[1]
     JWT.decode(token, key1, true, { algorithm: 'HS256' })
     expect { JWT.decode(token, key2, true, { algorithm: 'HS256' }) }.to raise_error(JWT::VerificationError)
+  end
+
+  it 'encodes url with jwt with meta, default image & variables' do
+    key = 'sg1j0HVy9bsMihJqa8Qwu8ZYgCYHG0tx'
+    flyyer = Flyyer::Flyyer.create do |f|
+      f.project = 'project'
+      f.path = '/collections/col'
+      f.secret = key
+      f.strategy = 'JWT'
+      f.default = "https://flyyer.io/static/logo.png"
+      f.variables = {
+        title: 'Hello world!',
+        description: 'First variable',
+      }
+      f.meta = {
+        id: 'dev forgot to slugify',
+        width: '100',
+        height: 200,
+      }
+    end
+    href = flyyer.href
+    token = href.scan(/(jwt-)(.*)(\?)/).last[1]
+    decoded = JWT.decode(token, key, true, { algorithm: 'HS256' })
+    payload = decoded.first
+    expect(payload['params']['var']['title']).to eq('Hello world!')
+    expect(payload['params']['var']['description']).to eq('First variable')
+    expect(payload['params']['w']).to eq('100')
+    expect(payload['params']['h']).to eq(200)
+    expect(payload['params']['def']).to eq("https://flyyer.io/static/logo.png")
+    expect(payload == { "params": flyyer.params_hash(true).compact, "path": '/collections/col' })
   end
 end
