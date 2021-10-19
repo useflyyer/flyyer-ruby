@@ -287,8 +287,8 @@ RSpec.describe Flyyer::Flyyer do
     token = href.scan(/(jwt-)(.*)(\?)/).last[1]
     decoded = JWT.decode(token, key, true, { algorithm: 'HS256' })
     payload = decoded.first
-    expect(payload['params']['_w']).to eq('100')
-    expect(payload['params']['_h']).to eq(200)
+    expect(payload['params']['w']).to eq('100')
+    expect(payload['params']['h']).to eq(200)
     expect(payload == { "params": flyyer.params_hash(true).compact, "path": '/collections/col' })
   end
 
@@ -312,7 +312,57 @@ RSpec.describe Flyyer::Flyyer do
     token = href.scan(/(jwt-)(.*)(\?)/).last[1]
     decoded = JWT.decode(token, key, true, { algorithm: 'HS256' })
     payload = decoded.first
-    expect(payload['params']['__id']).to eq('dev forgot to slugify')
+    expect(payload['params']['i']).to eq('dev forgot to slugify')
+    expect(payload == { "params": flyyer.params_hash(true).compact, "path": '/collections/col' })
+  end
+
+  it 'encodes url with jwt with meta and default relative image' do
+    key = 'sg1j0HVy9bsMihJqa8Qwu8ZYgCYHG0tx'
+    flyyer = Flyyer::Flyyer.create do |f|
+      f.project = 'project'
+      f.path = '/collections/col'
+      f.secret = key
+      f.strategy = 'JWT'
+      f.default = "/static/logo.png"
+      f.variables = {}
+      f.meta = {
+        id: 'dev forgot to slugify',
+        width: '100',
+        height: 200
+      }
+    end
+    href = flyyer.href
+    token = href.scan(/(jwt-)(.*)(\?)/).last[1]
+    decoded = JWT.decode(token, key, true, { algorithm: 'HS256' })
+    payload = decoded.first
+    expect(payload['params']['w']).to eq('100')
+    expect(payload['params']['h']).to eq(200)
+    expect(payload['params']['def']).to eq("/static/logo.png")
+    expect(payload == { "params": flyyer.params_hash(true).compact, "path": '/collections/col' })
+  end
+
+  it 'encodes url with jwt with meta and default absolute image' do
+    key = 'sg1j0HVy9bsMihJqa8Qwu8ZYgCYHG0tx'
+    flyyer = Flyyer::Flyyer.create do |f|
+      f.project = 'project'
+      f.path = '/collections/col'
+      f.secret = key
+      f.strategy = 'JWT'
+      f.default = "https://flyyer.io/static/logo.png"
+      f.variables = {}
+      f.meta = {
+        id: 'dev forgot to slugify',
+        width: '100',
+        height: 200
+      }
+    end
+    href = flyyer.href
+    token = href.scan(/(jwt-)(.*)(\?)/).last[1]
+    decoded = JWT.decode(token, key, true, { algorithm: 'HS256' })
+    payload = decoded.first
+    expect(payload['params']['w']).to eq('100')
+    expect(payload['params']['h']).to eq(200)
+    expect(payload['params']['def']).to eq("https://flyyer.io/static/logo.png")
     expect(payload == { "params": flyyer.params_hash(true).compact, "path": '/collections/col' })
   end
 
