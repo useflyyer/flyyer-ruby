@@ -315,4 +315,19 @@ RSpec.describe Flyyer::Flyyer do
     expect(payload['params']['__id']).to eq('dev forgot to slugify')
     expect(payload == { "params": flyyer.params_hash(true).compact, "path": '/collections/col' })
   end
+
+  it 'raises when jwt has incorrect key' do
+    key1 = 'sg1j0HVy9bsMihJqa8Qwu8ZYgCYHG0tx'
+    key2 = 'sg1j0HVy9bsMihJqa8Qwu8ZYgCYHG0ty'
+    flyyer = Flyyer::Flyyer.create do |f|
+      f.project = 'project'
+      f.path = '/collections/col'
+      f.secret = key1
+      f.strategy = 'JWT'
+    end
+    href = flyyer.href
+    token = href.scan(/(jwt-)(.*)(\?)/).last[1]
+    JWT.decode(token, key1, true, { algorithm: 'HS256' })
+    expect { JWT.decode(token, key2, true, { algorithm: 'HS256' }) }.to raise_error(JWT::VerificationError)
+  end
 end
