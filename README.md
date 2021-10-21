@@ -48,11 +48,13 @@ flyyer = Flyyer::Flyyer.create do |f|
   f.project = 'website-com'
   # The current path of your website
   f.path = '/path/to/product' # In Ruby on Rails you can use `request.env['PATH_INFO']`
+  # (Optional, Recommended) Default or main image for each page
+  f.default="/static/image-1.png" # or https://your-site.com/static/image-1.png
 end
 
 # Check:
 puts flyyer.href
-# > https://cdn.flyyer.io/v2/website-com/_/__v=1618281823/path/to/product
+# > https://cdn.flyyer.io/v2/website-com/_/__v=1618281823&_def=%2Fstatic%2Fimage-1.png/path/to/product
 ```
 
 ### 3. Put your smart image link in your `<head>` tags
